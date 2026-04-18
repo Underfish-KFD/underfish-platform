@@ -16,10 +16,12 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
-// Include the `app` and `utils` subprojects in the build.
-// If there are changes in only one of the projects, Gradle will rebuild only the one that has changed.
+// Include the platform modules in the build.
+// `underfish` is the current monolith reference, `utils` contains shared helpers,
+// and `abstract-service` is the base module template for future microservices.
 // Learn more about structuring projects with Gradle - https://docs.gradle.org/8.7/userguide/multi_project_builds.html
 include(":underfish")
 include(":utils")
+include(":abstract-service")
 
 rootProject.name = "underfish-platform"
