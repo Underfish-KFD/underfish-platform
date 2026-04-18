@@ -23,3 +23,4 @@ include(":underfish")
 include(":utils")
 
 rootProject.name = "underfish-platform"
+include("locationService")
