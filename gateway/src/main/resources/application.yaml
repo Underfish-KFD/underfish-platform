@@ -1,0 +1,85 @@
+server:
+    port: 8080
+
+spring:
+    application:
+        name: gateway
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    jwk-set-uri: ${JWT_JWKS_URI:http://localhost:8091/.well-known/jwks.json}
+
+    cloud:
+        gateway:
+            routes:
+                # --- Auth Service ---
+                - id: auth-register-login
+                  uri: ${AUTH_SERVICE_URI:http://localhost:8091}
+                  predicates:
+                      - Path=/api/v1/users/register,/api/v1/users/login
+                      - Method=POST
+
+                # --- Profile Service ---
+                - id: profile-users
+                  uri: ${PROFILE_SERVICE_URI:http://localhost:8092}
+                  predicates:
+                      - Path=/api/v1/users/**
+
+                # --- Community Service ---
+                - id: community-all
+                  uri: ${COMMUNITY_SERVICE_URI:http://localhost:8093}
+                  predicates:
+                      - Path=/api/v1/communities/**
+
+                # --- Geo Service (locationService) ---
+                - id: geo-locations
+                  uri: ${GEO_SERVICE_URI:http://localhost:8082}
+                  predicates:
+                      - Path=/api/v1/locations/**
+
+                # --- Event Service ---
+                - id: event-events
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  predicates:
+                      - Path=/api/v1/events/**
+
+                - id: event-tags
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  predicates:
+                      - Path=/api/v1/tags/**
+
+                - id: event-reviews
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  predicates:
+                      - Path=/api/v1/reviews/**
+
+                # --- Notification Service ---
+                - id: notification-user-list
+                  uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
+                  predicates:
+                      - Path=/api/v1/users/*/notifications
+
+                - id: notification-actions
+                  uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
+                  predicates:
+                      - Path=/api/v1/notifications/**
+                -   id: underfish-default
+                    uri: http://underfish:8096
+                    predicates:
+                        - Path=/api/v1/**
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info,gateway
+
+gateway:
+    identity:
+        internal-token: ${GATEWAY_INTERNAL_TOKEN:dev-internal-token}
+        user-id-header: X-User-Id
+        user-roles-header: X-User-Roles
+        internal-token-header: X-Internal-Token
+
