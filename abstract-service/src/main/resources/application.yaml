@@ -1,21 +1,15 @@
-spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-  application:
-    name: abstract-service
-  jackson:
-    property-naming-strategy: SNAKE_CASE
-  jpa:
-    open-in-view: false
+gateway:
+  security:
+    enabled: true
+    public-paths:
+      - /actuator/health
+      - /actuator/info
+    roles-delimiter: ","
+    trusted-internal-token: ${GATEWAY_INTERNAL_TOKEN:}
+    headers:
+      user-id: X-User-Id
+      user-email: X-User-Email
+      user-roles: X-User-Roles
+      auth-source: X-Auth-Source
+      internal-token: X-Internal-Token
 
-server:
-  port: ${SERVER_PORT:8080}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
