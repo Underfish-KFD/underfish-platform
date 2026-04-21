@@ -7,6 +7,14 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+val springCloudVersion = "2025.0.0"
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+    }
+}
+
 // IntelliJ может дергать эту задачу именно в подмодуле; делаем безопасный no-op.
 if (tasks.findByName("prepareKotlinBuildScriptModel") == null) {
     tasks.register("prepareKotlinBuildScriptModel")
@@ -17,6 +25,7 @@ dependencies {
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.actuator)
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
 
