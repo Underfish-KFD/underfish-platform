@@ -26,7 +26,6 @@ class UserHeadersGlobalFilter(
 
                  val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
 
-                // user_id из claim, fallback на sub
                 val userId = (jwt.claims["user_id"] as? String)?.trim().orEmpty()
                     .ifBlank { jwt.subject ?: "" }
 
@@ -37,7 +36,6 @@ class UserHeadersGlobalFilter(
 
                 val mutatedRequest = exchange.request.mutate()
                     .headers { headers ->
-                        // Перезаписываем, чтобы клиент не мог подделать эти хедеры
                         headers.set(props.userIdHeader, userId)
                         headers.set(props.userRolesHeader, roles)
                         headers.set(props.internalTokenHeader, props.internalToken)

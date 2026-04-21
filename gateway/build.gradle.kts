@@ -15,7 +15,6 @@ dependencyManagement {
     }
 }
 
-// IntelliJ может дергать эту задачу именно в подмодуле; делаем безопасный no-op.
 if (tasks.findByName("prepareKotlinBuildScriptModel") == null) {
     tasks.register("prepareKotlinBuildScriptModel")
 }
