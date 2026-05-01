@@ -1,16 +1,19 @@
-package ru.underfish.abstractservice.security
+package ru.underfish.communityservice.security
 
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import ru.underfish.abstractservice.exception.ForbiddenException
+import ru.underfish.communityservice.exception.ForbiddenException
 
 @Component
 class CurrentUserProvider {
     fun getOrNull(): GatewayPrincipal? =
         SecurityContextHolder.getContext().authentication?.principal as? GatewayPrincipal
 
-    fun getRequired(): GatewayPrincipal =
-        getOrNull() ?: throw IllegalStateException("Authenticated principal is not available")
+    fun getRequired(): GatewayPrincipal {
+        return check(getOrNull() != null) {
+            "Authenticated principal is not available"
+        }.run { getOrNull()!! }
+    }
 
     fun hasRole(role: String): Boolean {
         val normalized = role.removePrefix("ROLE_")

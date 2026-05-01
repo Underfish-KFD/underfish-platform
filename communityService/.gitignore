@@ -1,22 +1,11 @@
+HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### IntelliJ IDEA ###
-.idea/
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### Kotlin ###
-.kotlin
-
-### Eclipse ###
+### STS ###
 .apt_generated
 .classpath
 .factorypath
@@ -28,6 +17,15 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -38,19 +36,5 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
-.DS_Store
-/.env
-
-# Optional: ignore markdown/docs and logs
-*.md
-/docs/
-*.log
-
-# IDE
-.idea/
-*.iml
-
-# local env
-.env.local
-
+### Kotlin ###
+.kotlin

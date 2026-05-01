@@ -29,3 +29,4 @@ include(":file-storage-service")
 
 include(":abstract-service")
 include(":gateway")
+include(":communityService")

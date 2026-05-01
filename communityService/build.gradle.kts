@@ -32,6 +32,8 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.kotlin.test.junit5)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    testImplementation("org.mockito:mockito-core:4.11.0")
     testRuntimeOnly("com.h2database:h2")
 }
 
