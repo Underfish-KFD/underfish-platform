@@ -1,0 +1,29 @@
+server:
+  port: ${SERVER_PORT:8091}
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  application:
+    name: auth-service
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  jpa:
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+rsa:
+  private-key: ${RSA_PRIVATE_KEY:}
+  public-key: ${RSA_PUBLIC_KEY:}
+
+services:
+  profile:
+    url: ${PROFILE_SERVICE_URL:http://localhost:8092}
