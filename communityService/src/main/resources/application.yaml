@@ -23,4 +23,3 @@ gateway:
       user-roles: X-User-Roles
       auth-source: X-Auth-Source
       internal-token: X-Internal-Token
-
