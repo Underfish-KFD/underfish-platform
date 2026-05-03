@@ -5,8 +5,12 @@ import java.util.UUID
 
 data class StoredFileResponse(
     val id: UUID,
-    val originalName: String,
+    val url: String,
+    val fileName: String,
     val contentType: String,
     val sizeBytes: Long,
-    val createdAt: LocalDateTime,
+    val entityType: String,
+    val entityId: UUID?,
+    val uploadedBy: String,
+    val createdAt: LocalDateTime
 )

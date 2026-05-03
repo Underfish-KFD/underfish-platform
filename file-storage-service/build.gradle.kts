@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.micrometer.registry.prometheus)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation("io.minio:minio:8.5.7")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     runtimeOnly(libs.postgresql)
     runtimeOnly(libs.h2)
