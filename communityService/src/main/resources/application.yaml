@@ -1,3 +1,14 @@
+spring:
+  application:
+    name: communityService
+  boot:
+    admin:
+      client:
+        enabled: false
+
+server:
+  port: ${SERVER_PORT:8084}
+
 gateway:
   security:
     enabled: true
@@ -12,4 +23,3 @@ gateway:
       user-roles: X-User-Roles
       auth-source: X-Auth-Source
       internal-token: X-Internal-Token
-

@@ -26,3 +26,5 @@ rootProject.name = "underfish-platform"
 include("locationService")
 include(":abstract-service")
 include(":gateway")
+include(":communityService")
+include(":eventService")

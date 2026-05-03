@@ -1,5 +1,0 @@
-gateway:
-  security:
-    enabled: true
-    trusted-internal-token: test-internal-token
-
