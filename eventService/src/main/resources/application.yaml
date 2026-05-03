@@ -1,0 +1,40 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: event-service
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  datasource:
+    url: ${EVENT_DB_URL:jdbc:postgresql://localhost:5432/underfish_event}
+    username: ${EVENT_DB_USER:postgres}
+    password: ${EVENT_DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+gateway:
+  security:
+    enabled: ${GATEWAY_SECURITY_ENABLED:true}
+    trusted-internal-token: ${GATEWAY_INTERNAL_TOKEN:}
+    public-paths:
+      - /actuator/health
+      - /actuator/info
+
+integration:
+  validation-enabled: ${INTEGRATION_VALIDATION_ENABLED:false}
+  profile-service-base-url: ${PROFILE_SERVICE_BASE_URL:http://localhost:8084}
+  location-service-base-url: ${LOCATION_SERVICE_BASE_URL:http://localhost:8082}
