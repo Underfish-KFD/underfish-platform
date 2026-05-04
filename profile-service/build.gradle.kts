@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.spring.cloud.starter.openfeign)
     implementation(libs.micrometer.registry.prometheus)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     runtimeOnly(libs.postgresql)
     runtimeOnly(libs.h2)
