@@ -64,6 +64,11 @@ class FileController(
     fun getById(
         @PathVariable fileId: UUID,
     ): StoredFileResponse {
+
+        if (!currentUserProvider.isAdmin()) {
+            throw RuntimeException("Forbidden")
+        }
+
         val file = fileRepository.findById(fileId)
             .orElseThrow { RuntimeException("File not found") }
 
@@ -86,10 +91,9 @@ class FileController(
         @RequestParam entityId: UUID
     ): List<StoredFileResponse> {
 
-        //TODO: Разобраться с entity type
-
-        //TODO: Нужна - ли такая проверка?
-        //currentUserProvider.requireSelfOrAdmin(entityId.toString())
+        if (!currentUserProvider.isAdmin()) {
+            throw RuntimeException("Forbidden")
+        }
 
         return fileRepository.findByEntityTypeAndEntityId(entityType, entityId)
             .map {
