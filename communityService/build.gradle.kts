@@ -3,6 +3,7 @@ plugins {
     id("buildsrc.convention.kotlin-quality")
 
     alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -15,17 +16,20 @@ dependencyManagement {
     }
 }
 
-// IntelliJ может дергать эту задачу именно в подмодуле; делаем безопасный no-op.
 if (tasks.findByName("prepareKotlinBuildScriptModel") == null) {
     tasks.register("prepareKotlinBuildScriptModel")
 }
 
 dependencies {
+    implementation(project(":utils"))
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.actuator)
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.postgresql)
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
 
