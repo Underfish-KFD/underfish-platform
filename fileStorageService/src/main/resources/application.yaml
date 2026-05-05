@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  application:
+    name: file-storage-service
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  jpa:
+    open-in-view: false
+
+server:
+  port: ${SERVER_PORT:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
