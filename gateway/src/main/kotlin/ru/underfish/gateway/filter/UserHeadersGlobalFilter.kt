@@ -31,8 +31,10 @@ class UserHeadersGlobalFilter(
                     .ifBlank { jwt.subject ?: "" }
 
                 val roles = auth.authorities
-                    .map { it.authority.removePrefix("ROLE_") }
+                    .map { it.authority.removePrefix("ROLE_").removePrefix("SCOPE_") }
                     .filter { it.isNotBlank() }
+                    .ifEmpty { jwt.claims.stringListClaim("roles") }
+                    .ifEmpty { jwt.claims.stringListClaim("role") }
                     .joinToString(",")
 
                 val mutatedRequest = exchange.request.mutate()
@@ -50,4 +52,11 @@ class UserHeadersGlobalFilter(
 
     private fun Map<String, Any>.stringClaim(name: String): String =
         this[name]?.toString()?.trim().orEmpty()
+
+    private fun Map<String, Any>.stringListClaim(name: String): List<String> =
+        when (val value = this[name]) {
+            is Collection<*> -> value.mapNotNull { it?.toString()?.trim()?.takeIf(String::isNotBlank) }
+            is String -> value.split(",").map(String::trim).filter(String::isNotBlank)
+            else -> emptyList()
+        }
  }
