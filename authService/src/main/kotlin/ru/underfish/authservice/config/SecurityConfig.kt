@@ -16,13 +16,18 @@ class SecurityConfig {
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf().disable()
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        http.authorizeHttpRequests()
-            .requestMatchers("/api/v1/users/register", "/api/v1/users/login", "/actuator/**").permitAll()
-            .anyRequest().authenticated()
-        return http.build()
-    }
+    fun filterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests {
+                it.requestMatchers(
+                    "/api/v1/users/register",
+                    "/api/v1/users/login",
+                    "/.well-known/jwks.json",
+                    "/actuator/**",
+                ).permitAll()
+                it.anyRequest().authenticated()
+            }
+            .build()
 }
-

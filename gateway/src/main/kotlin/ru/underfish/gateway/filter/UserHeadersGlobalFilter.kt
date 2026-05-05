@@ -19,19 +19,22 @@ class UserHeadersGlobalFilter(
 
     override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
         return exchange.getPrincipal<Authentication>()
-             .flatMap { auth ->
+            .flatMap { auth ->
                 if (!auth.isAuthenticated) {
-                     return@flatMap chain.filter(exchange)
-                 }
+                    return@flatMap chain.filter(exchange)
+                }
 
-                 val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
+                val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
 
-                val userId = (jwt.claims["user_id"] as? String)?.trim().orEmpty()
+                val userId = jwt.claims.stringClaim("user_id")
+                    .ifBlank { jwt.claims.stringClaim("userId") }
                     .ifBlank { jwt.subject ?: "" }
 
                 val roles = auth.authorities
-                    .map { it.authority.removePrefix("ROLE_") }
+                    .map { it.authority.removePrefix("ROLE_").removePrefix("SCOPE_") }
                     .filter { it.isNotBlank() }
+                    .ifEmpty { jwt.claims.stringListClaim("roles") }
+                    .ifEmpty { jwt.claims.stringListClaim("role") }
                     .joinToString(",")
 
                 val mutatedRequest = exchange.request.mutate()
@@ -43,7 +46,17 @@ class UserHeadersGlobalFilter(
                     .build()
 
                 chain.filter(exchange.mutate().request(mutatedRequest).build())
-             }
+            }
             .switchIfEmpty(chain.filter(exchange))
-     }
- }
+    }
+
+    private fun Map<String, Any>.stringClaim(name: String): String =
+        this[name]?.toString()?.trim().orEmpty()
+
+    private fun Map<String, Any>.stringListClaim(name: String): List<String> =
+        when (val value = this[name]) {
+            is Collection<*> -> value.mapNotNull { it?.toString()?.trim()?.takeIf(String::isNotBlank) }
+            is String -> value.split(",").map(String::trim).filter(String::isNotBlank)
+            else -> emptyList()
+        }
+}
