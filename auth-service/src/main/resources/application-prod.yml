@@ -17,3 +17,7 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+
+rsa:
+  require: true
+

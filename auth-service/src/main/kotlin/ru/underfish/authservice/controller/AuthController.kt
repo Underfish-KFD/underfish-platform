@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import ru.underfish.authservice.dto.request.LoginRequest
 import ru.underfish.authservice.dto.request.RegisterRequest
-import ru.underfish.authservice.dto.response.AuthResponse
+import ru.underfish.authservice.dto.response.UserLoginResponse
+import ru.underfish.authservice.dto.response.UserResponse
 import ru.underfish.authservice.service.AuthService
 
 @RestController
@@ -19,10 +20,10 @@ class AuthController(private val authService: AuthService) {
     @ResponseStatus(HttpStatus.CREATED)
     fun register(
         @Valid @RequestBody request: RegisterRequest,
-    ): AuthResponse = authService.register(request)
+    ): UserResponse = authService.register(request)
 
     @PostMapping("/login")
     fun login(
         @Valid @RequestBody request: LoginRequest,
-    ): AuthResponse = authService.login(request)
+    ): UserLoginResponse = authService.login(request)
 }

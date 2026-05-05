@@ -16,7 +16,9 @@ class JwtTokenUtil(private val rsaKeyPair: KeyPair) {
     ): String =
         Jwts.builder()
             .subject(email)
+            .claim("user_id", userId.toString())
             .claim("userId", userId)
+            .claim("email", email)
             .claim("role", role.name)
             .issuedAt(Date())
             .expiration(Date(System.currentTimeMillis() + ACCESS_TOKEN_TTL_MS))

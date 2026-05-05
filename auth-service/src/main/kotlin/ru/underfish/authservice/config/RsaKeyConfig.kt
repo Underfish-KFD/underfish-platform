@@ -14,11 +14,15 @@ import java.util.Base64
 class RsaKeyConfig(
     @Value("\${rsa.private-key:}") private val privateKeyPem: String,
     @Value("\${rsa.public-key:}") private val publicKeyPem: String,
+    @Value("\${rsa.require:false}") private val requireKeys: Boolean,
 ) {
     @Bean
     fun rsaKeyPair(): KeyPair {
         if (privateKeyPem.isNotBlank() && publicKeyPem.isNotBlank()) {
             return loadFromPem(privateKeyPem, publicKeyPem)
+        }
+        if (requireKeys) {
+            throw IllegalStateException("RSA_PRIVATE_KEY and RSA_PUBLIC_KEY are required when rsa.require=true")
         }
         // In dev/test: generate a transient key pair on startup.
         // For production, set RSA_PRIVATE_KEY and RSA_PUBLIC_KEY env vars
