@@ -35,6 +35,7 @@ class UserHeadersGlobalFilter(
                     .filter { it.isNotBlank() }
                     .ifEmpty { jwt.claims.stringListClaim("roles") }
                     .ifEmpty { jwt.claims.stringListClaim("role") }
+                    .ifEmpty { listOf(DEFAULT_USER_ROLE) }
                     .joinToString(",")
 
                 val mutatedRequest = exchange.request.mutate()
@@ -59,4 +60,8 @@ class UserHeadersGlobalFilter(
             is String -> value.split(",").map(String::trim).filter(String::isNotBlank)
             else -> emptyList()
         }
+
+    companion object {
+        private const val DEFAULT_USER_ROLE = "USER"
+    }
  }

@@ -26,6 +26,11 @@ DB_NAME=${DB_NAME:-auth_db}
 DB_USER=${DB_USER:-auth_user}
 DB_PASS=${DB_PASS:-auth_pass}
 
+if [[ "$REGISTER_PATH" == "/api/auth/register" ]]; then
+  echo "REGISTER_PATH=/api/auth/register is obsolete; using /api/v1/users/register" >&2
+  REGISTER_PATH=/api/v1/users/register
+fi
+
 if ! command -v jq >/dev/null 2>&1; then
   echo "Error: jq is required. Install it (brew install jq)" >&2
   exit 2
