@@ -32,7 +32,7 @@ services:
       context: .
       dockerfile: Dockerfile.runtime
       args:
-        SERVICE: auth-service
+        SERVICE: authService
     container_name: uf_auth
     environment:
       SERVER_PORT: 8091
@@ -46,7 +46,7 @@ services:
       PROFILE_SERVICE_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
       PROFILE_SERVICE_INTERNAL_USER_ID: system
       PROFILE_SERVICE_INTERNAL_ROLES: ADMIN
-      PROFILE_SERVICE_AUTH_SOURCE: auth-service
+      PROFILE_SERVICE_AUTH_SOURCE: authService
     ports:
       - "8091:8091"
     depends_on:
@@ -60,7 +60,7 @@ services:
       context: .
       dockerfile: Dockerfile.runtime
       args:
-        SERVICE: profile-service
+        SERVICE: profileService
     container_name: uf_profile
     environment:
       SERVER_PORT: 8082
@@ -151,7 +151,7 @@ services:
       context: .
       dockerfile: Dockerfile.runtime
       args:
-        SERVICE: file-storage-service
+        SERVICE: fileStorageService
     container_name: uf_storage
     environment:
       SERVER_PORT: 8085
