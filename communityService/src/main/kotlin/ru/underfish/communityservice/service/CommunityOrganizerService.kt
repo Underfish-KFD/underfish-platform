@@ -18,8 +18,7 @@ class CommunityOrganizerService(
         communityId: UUID,
         userId: UUID,
     ): CommunityOrganizer {
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         // Allow self (on creation), admin, or existing organizer
         if (userId != currentUserId && !currentUserProvider.isAdmin() && !isOrganizer(communityId, currentUserId)) {
@@ -51,8 +50,7 @@ class CommunityOrganizerService(
         communityId: UUID,
         userId: UUID,
     ) {
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         if (!currentUserProvider.isAdmin() && !isOrganizer(communityId, currentUserId)) {
             throw ForbiddenException("Only admin or organizer can remove organizers")

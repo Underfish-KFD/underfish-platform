@@ -53,8 +53,7 @@ class CommunityService(
      * - Пользователь создал сообщество и он уже организатор
      */
     fun createCommunity(request: CommunityRequest): CommunityResponse {
-        val currentUser = currentUserProvider.getRequired()
-        val organizerId = UUID.fromString(currentUser.userId)
+        val organizerId = currentUserProvider.getRequiredUserUuid()
 
         val community =
             Community().apply {
@@ -207,8 +206,7 @@ class CommunityService(
             communityRepository.findByCommunityId(communityId)
                 ?: throw NotFoundException("Community not found: $communityId")
 
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         // Проверка прав доступа
         val isOrganizer = community.organizerId == currentUserId
@@ -241,8 +239,7 @@ class CommunityService(
             communityRepository.findByCommunityId(communityId)
                 ?: throw NotFoundException("Community not found: $communityId")
 
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         val isOrganizer = community.organizerId == currentUserId
         val isAdmin = currentUserProvider.isAdmin()

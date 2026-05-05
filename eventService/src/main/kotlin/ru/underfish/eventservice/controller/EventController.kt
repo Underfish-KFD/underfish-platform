@@ -34,7 +34,7 @@ class EventController(
     fun createEvent(
         @Valid @RequestBody request: EventRequest,
     ): EventResponse {
-        val userId = UUID.fromString(currentUserProvider.getRequired().userId)
+        val userId = currentUserProvider.getRequiredUserUuid()
         return eventService.createEvent(request, userId)
     }
 
@@ -117,4 +117,3 @@ class EventController(
         eventService.removeTagFromEvent(eventId, tagId)
     }
 }
-

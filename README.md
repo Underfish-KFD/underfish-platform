@@ -163,6 +163,15 @@ DEBUG=1 \
 REGISTER_PATH=/api/v1/users/register DEBUG=1 ./integration-tests/run_e2e.sh
 ```
 
+Если после регистрации community creation падает с `500`, сначала проверьте, что контейнеры пересобраны из актуальных jar. Самые частые причины: старый auth-service выдал токен без `roles` или со старым numeric `user_id`, либо старый community-service ещё не умеет принимать такой `user_id`. Пересоберите и пересоздайте сервисы:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew build -x test --console=plain && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml build --no-cache auth-service gateway community-service event-service && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d --no-deps --no-build auth-service gateway community-service event-service
+```
+
 Полный цикл «с нуля»: пересобрать, поднять всё и запустить тесты:
 
 ```bash
