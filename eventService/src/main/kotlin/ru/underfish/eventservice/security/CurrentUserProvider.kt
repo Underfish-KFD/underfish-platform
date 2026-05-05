@@ -8,6 +8,7 @@ class CurrentUserProvider {
     fun getOrNull(): GatewayPrincipal? =
         SecurityContextHolder.getContext().authentication?.principal as? GatewayPrincipal
 
-    fun getRequired(): GatewayPrincipal =
-        checkNotNull(getOrNull()) { "Authenticated principal is not available" }
+    fun getRequired(): GatewayPrincipal {
+        return checkNotNull(getOrNull()) { "Authenticated principal is not available" }
+    }
 }
