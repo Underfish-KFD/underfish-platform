@@ -27,3 +27,7 @@ rsa:
 services:
   profile:
     url: ${PROFILE_SERVICE_URL:http://localhost:8092}
+    internal-token: ${PROFILE_SERVICE_INTERNAL_TOKEN:}
+    internal-user-id: ${PROFILE_SERVICE_INTERNAL_USER_ID:system}
+    internal-roles: ${PROFILE_SERVICE_INTERNAL_ROLES:ADMIN}
+    auth-source: ${PROFILE_SERVICE_AUTH_SOURCE:auth-service}
