@@ -3,8 +3,10 @@ package ru.underfish.authservice.client.config
 import feign.RequestInterceptor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @Configuration
+@EnableConfigurationProperties(ProfileClientProperties::class)
 class ProfileClientConfig(
     private val props: ProfileClientProperties,
 ) {

@@ -1,4 +1,4 @@
-package com.underfish.auth
+package ru.underfish.authservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
