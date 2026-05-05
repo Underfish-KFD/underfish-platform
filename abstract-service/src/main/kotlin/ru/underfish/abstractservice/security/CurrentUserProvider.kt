@@ -10,7 +10,7 @@ class CurrentUserProvider {
         SecurityContextHolder.getContext().authentication?.principal as? GatewayPrincipal
 
     fun getRequired(): GatewayPrincipal =
-        getOrNull() ?: throw IllegalStateException("Authenticated principal is not available")
+        checkNotNull(getOrNull()) { "Authenticated principal is not available" }
 
     fun hasRole(role: String): Boolean {
         val normalized = role.removePrefix("ROLE_")

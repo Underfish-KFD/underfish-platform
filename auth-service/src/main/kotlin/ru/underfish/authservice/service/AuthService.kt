@@ -1,5 +1,6 @@
 package ru.underfish.authservice.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -29,6 +30,8 @@ class AuthService(
     private val jwtTokenUtil: JwtTokenUtil,
     private val profileClient: ProfileClient,
 ) {
+    private val logger = LoggerFactory.getLogger(AuthService::class.java)
+
     fun register(request: RegisterRequest): UserResponse {
         if (userRepository.existsByEmail(request.email)) {
             throw BadRequestException("Email already registered")
@@ -55,8 +58,8 @@ class AuthService(
             if (profileId != null) {
                 try {
                     profileClient.deleteProfile(profileId)
-                } catch (_: Exception) {
-                    // Cleanup best-effort if auth persistence failed.
+                } catch (ex: Exception) {
+                    logger.warn("Failed to rollback profile creation for userId=$profileId", ex)
                 }
             }
             throw BadRequestException("Email already registered")

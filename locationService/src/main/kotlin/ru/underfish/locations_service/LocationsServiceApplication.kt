@@ -7,5 +7,6 @@ import org.springframework.boot.runApplication
 class LocationsServiceApplication
 
 fun main(args: Array<String>) {
+    @Suppress("SpreadOperator")
     runApplication<LocationsServiceApplication>(*args)
 }

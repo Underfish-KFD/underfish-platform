@@ -9,5 +9,6 @@ import org.springframework.boot.runApplication
 class EventServiceApplication
 
 fun main(args: Array<String>) {
+    @Suppress("SpreadOperator")
     runApplication<EventServiceApplication>(*args)
 }

@@ -9,5 +9,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients
 class AbstractServiceApplication
 
 fun main(args: Array<String>) {
+    @Suppress("SpreadOperator")
     runApplication<AbstractServiceApplication>(*args)
 }

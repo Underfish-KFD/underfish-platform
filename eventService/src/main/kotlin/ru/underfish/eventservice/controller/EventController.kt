@@ -39,6 +39,7 @@ class EventController(
     }
 
     @GetMapping
+    @Suppress("LongParameterList", "FunctionParameterNaming")
     fun getEvents(
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) status: String?,

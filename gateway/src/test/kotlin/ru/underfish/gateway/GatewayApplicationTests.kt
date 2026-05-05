@@ -14,6 +14,7 @@ class GatewayApplicationTests {
     private lateinit var webTestClient: WebTestClient
 
     @Test
+    @Suppress("EmptyFunctionBlock")
     fun contextLoads() {
     }
 

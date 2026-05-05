@@ -17,6 +17,8 @@ naming:
         functionPattern: '[a-z][a-zA-Z0-9]*'
     VariableNaming:
         variablePattern: '[a-z][A-Za-z0-9]*'
+    PackageNaming:
+        packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9_]*)*'
 
 style:
     active: true

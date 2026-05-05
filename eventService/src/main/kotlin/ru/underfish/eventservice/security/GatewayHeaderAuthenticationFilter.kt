@@ -25,6 +25,7 @@ class GatewayHeaderAuthenticationFilter(
         return gatewaySecurityProperties.publicPaths.any { pathMatcher.match(it, requestPath) }
     }
 
+    @Suppress("ReturnCount")
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,

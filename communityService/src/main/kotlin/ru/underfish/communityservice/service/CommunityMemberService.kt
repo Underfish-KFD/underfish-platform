@@ -1,5 +1,6 @@
 package ru.underfish.communityservice.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.underfish.communityservice.database.dao.CommunityMemberRepository
 import ru.underfish.communityservice.database.dao.CommunityRepository
@@ -20,6 +21,8 @@ class CommunityMemberService(
     private val communityOrganizerService: CommunityOrganizerService,
     private val authClient: ru.underfish.communityservice.client.AuthClient,
 ) {
+    private val logger = LoggerFactory.getLogger(CommunityMemberService::class.java)
+
     fun addMember(
         communityId: UUID,
         request: CommunityMemberRequest,
@@ -38,6 +41,7 @@ class CommunityMemberService(
         try {
             authClient.getUser(request.userId)
         } catch (ex: Exception) {
+            logger.warn("Auth user lookup failed for userId=${'$'}{request.userId}", ex)
             throw NotFoundException("User not found: ${'$'}{request.userId}")
         }
 

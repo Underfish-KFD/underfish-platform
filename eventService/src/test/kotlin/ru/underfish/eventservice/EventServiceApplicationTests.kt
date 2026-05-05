@@ -8,6 +8,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 class EventServiceApplicationTests {
     @Test
+    @Suppress("EmptyFunctionBlock")
     fun contextLoads() {
     }
 }

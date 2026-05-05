@@ -7,5 +7,6 @@ import org.springframework.boot.runApplication
 class GatewayApplication
 
 fun main(args: Array<String>) {
+    @Suppress("SpreadOperator")
     runApplication<GatewayApplication>(*args)
 }

@@ -22,7 +22,7 @@ class RsaKeyConfig(
             return loadFromPem(privateKeyPem, publicKeyPem)
         }
         if (requireKeys) {
-            throw IllegalStateException("RSA_PRIVATE_KEY and RSA_PUBLIC_KEY are required when rsa.require=true")
+            error("RSA_PRIVATE_KEY and RSA_PUBLIC_KEY are required when rsa.require=true")
         }
         // In dev/test: generate a transient key pair on startup.
         // For production, set RSA_PRIVATE_KEY and RSA_PUBLIC_KEY env vars

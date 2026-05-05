@@ -11,6 +11,7 @@ import ru.underfish.authservice.client.config.ProfileClientProperties
 @EnableConfigurationProperties(ProfileClientProperties::class)
 class AuthServiceApplication
 
+@Suppress("SpreadOperator")
 fun main(args: Array<String>) {
     runApplication<AuthServiceApplication>(*args)
 }
