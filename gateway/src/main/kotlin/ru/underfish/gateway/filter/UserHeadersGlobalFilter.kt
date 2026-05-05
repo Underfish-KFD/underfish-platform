@@ -26,7 +26,8 @@ class UserHeadersGlobalFilter(
 
                  val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
 
-                val userId = (jwt.claims["user_id"] as? String)?.trim().orEmpty()
+                val userId = jwt.claims.stringClaim("user_id")
+                    .ifBlank { jwt.claims.stringClaim("userId") }
                     .ifBlank { jwt.subject ?: "" }
 
                 val roles = auth.authorities
@@ -46,4 +47,7 @@ class UserHeadersGlobalFilter(
              }
             .switchIfEmpty(chain.filter(exchange))
      }
+
+    private fun Map<String, Any>.stringClaim(name: String): String =
+        this[name]?.toString()?.trim().orEmpty()
  }
