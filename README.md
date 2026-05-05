@@ -26,16 +26,153 @@
 - `docker-compose-infra.yml` — отдельные БД для сервисов, Redis, MinIO, Zipkin.
 - `docker-compose-services.yml` — контейнеры сервисов (gateway, auth, profile, community, event, location, file-storage).
 
-Запускать их нужно вместе:
+#### Полный локальный запуск: все БД и все сервисы
+
+> На macOS перед Gradle-командами удобно выставить Java 21:
+>
+> ```bash
+> export JAVA_HOME=$(/usr/libexec/java_home -v21)
+> ```
+
+1. Собрать jar всех сервисов:
 
 ```bash
-docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d --build
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew build -x test --console=plain
 ```
 
-Остановка:
+2. Собрать Docker images всех сервисов без cache:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml build --no-cache
+```
+
+3. Поднять всю инфраструктуру и все сервисы:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d
+```
+
+То же самое одной командой:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew build -x test --console=plain && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml build --no-cache && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d
+```
+
+Остановка без удаления volume с данными БД:
 
 ```bash
 docker compose -f docker-compose-infra.yml -f docker-compose-services.yml down
+```
+
+Остановка с удалением volume БД/Redis/MinIO, чтобы начать с чистого состояния:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml down -v
+```
+
+Проверка, что контейнеры поднялись:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml ps
+```
+
+Логи всех сервисов:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml logs -f
+```
+
+Логи только auth-service:
+
+```bash
+docker logs --tail 200 -f uf_auth
+```
+
+#### Проверки после запуска
+
+Gateway health:
+
+```bash
+curl -i http://localhost:8080/actuator/health
+```
+
+Auth-service health:
+
+```bash
+curl -i http://localhost:8091/actuator/health
+```
+
+JWKS для RS256-токенов:
+
+```bash
+curl -i http://localhost:8091/.well-known/jwks.json
+```
+
+Если нужен красивый JSON:
+
+```bash
+curl -s http://localhost:8091/.well-known/jwks.json | jq
+```
+
+#### Все тесты
+
+Unit/integration tests Gradle-проектов:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew test --console=plain
+```
+
+Полная Gradle-проверка с build:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew build --console=plain
+```
+
+Локальный E2E-сценарий через gateway: регистрация пользователя, проверка JWT `RS256`, создание community, создание event в этом community, проверка пользователя в auth DB:
+
+```bash
+cd /Users/alex/Projects/underfish/underfish-platform && \
+DEBUG=1 ./integration-tests/run_e2e.sh
+```
+
+Явный вариант этой же E2E-команды:
+
+```bash
+cd /Users/alex/Projects/underfish/underfish-platform && \
+GATEWAY_URL=http://localhost:8080 \
+REGISTER_PATH=/api/v1/users/register \
+EXPECT_JWT_ALG=RS256 \
+DB_HOST=localhost \
+DB_PORT=5432 \
+DB_NAME=auth_db \
+DB_USER=auth_user \
+DB_PASS=auth_pass \
+DEBUG=1 \
+./integration-tests/run_e2e.sh
+```
+
+Если E2E идёт на `http://localhost:8080/api/auth/register` и получает `401`, значит запускается старая версия скрипта или в shell задан старый `REGISTER_PATH`. Используйте актуальный путь:
+
+```bash
+REGISTER_PATH=/api/v1/users/register DEBUG=1 ./integration-tests/run_e2e.sh
+```
+
+Полный цикл «с нуля»: пересобрать, поднять всё и запустить тесты:
+
+```bash
+cd /Users/alex/Projects/underfish/underfish-platform && \
+export JAVA_HOME=$(/usr/libexec/java_home -v21) && \
+./gradlew build --console=plain && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml down -v && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml build --no-cache && \
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d && \
+DEBUG=1 ./integration-tests/run_e2e.sh
 ```
 
 Порты сервисов (хост -> контейнер):
