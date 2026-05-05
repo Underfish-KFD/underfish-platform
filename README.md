@@ -11,13 +11,54 @@
 
 ---
 ## Описание 📋
-“Underfish” — это инновационная гиперлокальная платформа для анонсирования и поиска мероприятий, ориентированная 
-на малые сообщества, андерграунд-организаторов и локальных инициатив. Платформа позволяет организаторам легко 
-публиковать информацию о своих мероприятиях (концерты, встречи, мастер-классы, выставки), а пользователям 
+“Underfish” — это инновационная гиперлокальная платформа для анонсирования и поиска мероприятий, ориентированная
+на малые сообщества, андерграунд-организаторов и локальных инициатив. Платформа позволяет организаторам легко
+публиковать информацию о своих мероприятиях (концерты, встречи, мастер-классы, выставки), а пользователям
 — находить интересные события в своём районе с помощью удобной карты и системы тегов.
 
 
 ## Установка и запуск 🚧
+
+### Микросервисы через Docker Compose
+
+В репозитории есть отдельный набор для инфраструктуры и сервисов:
+
+- `docker-compose-infra.yml` — отдельные БД для сервисов, Redis, MinIO, Zipkin.
+- `docker-compose-services.yml` — контейнеры сервисов (gateway, auth, profile, community, event, location, file-storage).
+
+Запускать их нужно вместе:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d --build
+```
+
+Остановка:
+
+```bash
+docker compose -f docker-compose-infra.yml -f docker-compose-services.yml down
+```
+
+Порты сервисов (хост -> контейнер):
+
+- gateway: `8080`
+- auth-service: `8091`
+- profile-service: `8082`
+- event-service: `8083`
+- community-service: `8084`
+- location-service: `8081`
+- file-storage-service: `8085`
+
+Порты БД (хост -> контейнер) берутся из `docker-compose-infra.yml`:
+
+- auth: `5432`
+- event: `5433`
+- geo: `5434`
+- notification: `5435`
+- community: `5436`
+- storage: `5437`
+- profile: `5438`
+
+Eureka/Service Discovery в проекте не настроен — маршрутизация идет через явные `host:port`.
 
 ### Вариант 1: Сборка из исходников
 
@@ -57,10 +98,10 @@ mvn clean package -Pdocker -DskipTests
 ```
 3. Соберите Docker-образ:
 ```
-docker build -t kotlin-app . 
+docker build -t kotlin-app .
 ```
 4. Запустите контейнер с зависимостями:
-```   
+```
 docker compose up -d
 ```
 5. Приложение будет доступно на `http://localhost:8080`.

@@ -1,0 +1,175 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: gateway
+    container_name: uf_gateway
+    environment:
+      SERVER_PORT: 8080
+      AUTH_SERVICE_URI: http://auth-service:8091
+      PROFILE_SERVICE_URI: http://profile-service:8082
+      COMMUNITY_SERVICE_URI: http://community-service:8084
+      GEO_SERVICE_URI: http://location-service:8081
+      EVENT_SERVICE_URI: http://event-service:8083
+      NOTIFICATION_SERVICE_URI: http://notification-service:8095
+      JWT_JWKS_URI: http://auth-service:8091/.well-known/jwks.json
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - profile-service
+      - community-service
+      - event-service
+      - location-service
+    networks:
+      - underfish_net
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: auth-service
+    container_name: uf_auth
+    environment:
+      SERVER_PORT: 8091
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: pg-auth
+      DB_PORT: 5432
+      DB_NAME: auth_db
+      DB_USERNAME: auth_user
+      DB_PASSWORD: auth_pass
+      PROFILE_SERVICE_URL: http://profile-service:8082
+      PROFILE_SERVICE_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
+      PROFILE_SERVICE_INTERNAL_USER_ID: system
+      PROFILE_SERVICE_INTERNAL_ROLES: ADMIN
+      PROFILE_SERVICE_AUTH_SOURCE: auth-service
+    ports:
+      - "8091:8091"
+    depends_on:
+      - pg-auth
+      - profile-service
+    networks:
+      - underfish_net
+
+  profile-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: profile-service
+    container_name: uf_profile
+    environment:
+      SERVER_PORT: 8082
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: pg-profile
+      DB_PORT: 5432
+      DB_NAME: profile_db
+      DB_USERNAME: profile_user
+      DB_PASSWORD: profile_pass
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
+    ports:
+      - "8082:8082"
+    depends_on:
+      - pg-profile
+    networks:
+      - underfish_net
+
+  community-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: communityService
+    container_name: uf_community
+    environment:
+      SERVER_PORT: 8084
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: pg-community
+      DB_PORT: 5432
+      DB_NAME: community_db
+      DB_USERNAME: community_user
+      DB_PASSWORD: community_pass
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
+    ports:
+      - "8084:8084"
+    depends_on:
+      - pg-community
+    networks:
+      - underfish_net
+
+  event-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: eventService
+    container_name: uf_event
+    environment:
+      SERVER_PORT: 8083
+      EVENT_DB_URL: jdbc:postgresql://pg-event:5432/event_db
+      EVENT_DB_USER: event_user
+      EVENT_DB_PASSWORD: event_pass
+      PROFILE_SERVICE_BASE_URL: http://profile-service:8082
+      LOCATION_SERVICE_BASE_URL: http://location-service:8081
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
+    ports:
+      - "8083:8083"
+    depends_on:
+      - pg-event
+      - profile-service
+      - location-service
+    networks:
+      - underfish_net
+
+  location-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: locationService
+    container_name: uf_location
+    environment:
+      SERVER_PORT: 8081
+      DB_HOST: pg-geo
+      DB_PORT: 5432
+      DB_NAME: geo_db
+      DB_USERNAME: geo_user
+      DB_PASSWORD: geo_pass
+    ports:
+      - "8081:8081"
+    depends_on:
+      - pg-geo
+    networks:
+      - underfish_net
+
+  file-storage-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE: file-storage-service
+    container_name: uf_storage
+    environment:
+      SERVER_PORT: 8085
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: pg-storage
+      DB_PORT: 5432
+      DB_NAME: storage_db
+      DB_USERNAME: storage_user
+      DB_PASSWORD: storage_pass
+    ports:
+      - "8085:8085"
+    depends_on:
+      - pg-storage
+      - minio
+    networks:
+      - underfish_net
+
+networks:
+  underfish_net:
+    driver: bridge
+
