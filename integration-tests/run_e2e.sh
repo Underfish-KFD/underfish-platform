@@ -13,7 +13,8 @@ set -euo pipefail
 #   ./integration-tests/run_e2e.sh
 
 GATEWAY_URL=${GATEWAY_URL:-http://localhost:8080}
-REGISTER_PATH=${REGISTER_PATH:-/api/auth/register}
+REGISTER_PATH=${REGISTER_PATH:-/api/v1/users/register}
+EXPECT_JWT_ALG=${EXPECT_JWT_ALG:-RS256}
 DEBUG=${DEBUG:-0}
 DB_HOST=${DB_HOST:-localhost}
 DB_PORT=${DB_PORT:-5432}
@@ -73,32 +74,46 @@ fi
 
 echo "Token received: ${TOKEN:0:40}..."
 
-# decode payload
+decode_base64url() {
+  local value="$1"
+  local pad=$(( (4 - ${#value} % 4) % 4 ))
+  for _ in $(seq 1 "$pad"); do value="$value="; done
+
+  if printf '%s' "$value" | tr '_-' '/+' | base64 --decode 2>/dev/null; then
+    return 0
+  fi
+  printf '%s' "$value" | tr '_-' '/+' | base64 -D 2>/dev/null
+}
+
+HEADER=$(echo "$TOKEN" | awk -F. '{print $1}')
 PAYLOAD=$(echo "$TOKEN" | awk -F. '{print $2}')
-if [[ -z "$PAYLOAD" ]]; then
+if [[ -z "$HEADER" || -z "$PAYLOAD" ]]; then
   echo "Invalid JWT format" >&2
   exit 5
 fi
-PAD=$(( (4 - ${#PAYLOAD} % 4) % 4 ))
-for i in $(seq 1 "$PAD"); do PAYLOAD="$PAYLOAD="; done
-DECODED_PAYLOAD=""
-if DECODED_PAYLOAD=$(echo "$PAYLOAD" | tr '_-' '/+' | base64 --decode 2>/dev/null); then
-  :
-elif DECODED_PAYLOAD=$(echo "$PAYLOAD" | tr '_-' '/+' | base64 -D 2>/dev/null); then
-  :
-else
-  DECODED_PAYLOAD=""
-fi
-if [[ -z "$DECODED_PAYLOAD" ]]; then
-  echo "Failed to decode JWT payload" >&2
+
+DECODED_HEADER=$(decode_base64url "$HEADER") || {
+  echo "Failed to decode JWT header" >&2
   exit 6
+}
+echo "JWT header: $DECODED_HEADER"
+
+ALG_IN_TOKEN=$(echo "$DECODED_HEADER" | jq -r '.alg // empty')
+if [[ -n "$EXPECT_JWT_ALG" && "$ALG_IN_TOKEN" != "$EXPECT_JWT_ALG" ]]; then
+  echo "JWT alg ('$ALG_IN_TOKEN') != expected ('$EXPECT_JWT_ALG')" >&2
+  exit 7
 fi
+
+DECODED_PAYLOAD=$(decode_base64url "$PAYLOAD") || {
+  echo "Failed to decode JWT payload" >&2
+  exit 8
+}
 echo "JWT payload: $DECODED_PAYLOAD"
 
 EMAIL_IN_TOKEN=$(echo "$DECODED_PAYLOAD" | jq -r '.sub // .email // empty')
 if [[ "$EMAIL_IN_TOKEN" != "$EMAIL" ]]; then
   echo "Email in token ('$EMAIL_IN_TOKEN') != expected ('$EMAIL')" >&2
-  exit 7
+  exit 9
 fi
 
 echo "Waiting 2s for DB entry..."
@@ -112,7 +127,7 @@ SQL_COUNT="SELECT count(*) FROM users WHERE email = '$EMAIL'"
 echo "Checking DB: ${PSQL_CMD[*]} -> $SQL_COUNT"
 COUNT=$("${PSQL_CMD[@]}" "$SQL_COUNT") || {
   echo "DB query failed" >&2
-  exit 8
+  exit 10
 }
 
 if [[ "$COUNT" -eq 1 ]]; then
@@ -120,6 +135,6 @@ if [[ "$COUNT" -eq 1 ]]; then
   exit 0
 else
   echo "User not found in DB (count=$COUNT)" >&2
-  exit 9
+  exit 11
 fi
 
