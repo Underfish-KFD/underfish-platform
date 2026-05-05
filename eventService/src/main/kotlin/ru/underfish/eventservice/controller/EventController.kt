@@ -117,4 +117,3 @@ class EventController(
         eventService.removeTagFromEvent(eventId, tagId)
     }
 }
-

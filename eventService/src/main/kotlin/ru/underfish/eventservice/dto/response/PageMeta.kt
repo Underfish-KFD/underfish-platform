@@ -6,4 +6,3 @@ data class PageMeta(
     val totalElements: Long,
     val totalPages: Int,
 )
-

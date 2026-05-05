@@ -9,4 +9,3 @@ data class ErrorResponse(
     val message: String?,
     val path: String?,
 )
-

@@ -122,8 +122,7 @@ class AuthService(
         return AuthResponse(accessToken = accessToken, refreshToken = refreshToken.token)
     }
 
-    private fun issueAccessToken(user: User): String =
-        jwtTokenUtil.generateAccessToken(user.id, user.email, user.role)
+    private fun issueAccessToken(user: User): String = jwtTokenUtil.generateAccessToken(user.id, user.email, user.role)
 
     companion object {
         private const val REFRESH_TOKEN_TTL_DAYS = 30L

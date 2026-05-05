@@ -19,7 +19,6 @@ import java.util.UUID
 class Event(
     @Column(name = "organizer_id", nullable = false)
     var organizerId: UUID,
-
     @Column(name = "title", nullable = false, length = 255)
     var title: String,
 ) : AbstractEntity() {
@@ -68,4 +67,3 @@ class Event(
     )
     var tags: MutableSet<Tag> = mutableSetOf()
 }
-

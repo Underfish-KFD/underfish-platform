@@ -17,7 +17,6 @@ class EventAttendance(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     var event: Event,
-
     @Column(name = "user_id", nullable = false)
     var userId: UUID,
 ) : AbstractEntity() {
@@ -25,4 +24,3 @@ class EventAttendance(
     @Column(name = "attendance_status", nullable = false, length = 20)
     var status: AttendanceStatus = AttendanceStatus.PENDING
 }
-

@@ -11,4 +11,3 @@ class CurrentUserProvider {
     fun getRequired(): GatewayPrincipal =
         getOrNull() ?: throw IllegalStateException("Authenticated principal is not available")
 }
-

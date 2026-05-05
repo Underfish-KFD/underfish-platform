@@ -14,7 +14,6 @@ class Review(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     var event: Event,
-
     @Column(name = "user_id", nullable = false)
     var userId: UUID,
 ) : AbstractEntity() {
@@ -24,4 +23,3 @@ class Review(
     @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
     var comment: String = ""
 }
-

@@ -18,4 +18,3 @@ data class GatewaySecurityProperties(
         var internalToken: String = "X-Internal-Token",
     )
 }
-

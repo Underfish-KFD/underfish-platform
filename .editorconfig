@@ -14,3 +14,6 @@ ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 ktlint_standard_no-wildcard-imports = disabled
+
+[locationService/**.kt]
+ktlint_standard_package-name = disabled

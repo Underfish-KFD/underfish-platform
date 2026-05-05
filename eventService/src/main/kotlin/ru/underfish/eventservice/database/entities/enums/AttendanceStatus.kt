@@ -6,4 +6,3 @@ enum class AttendanceStatus {
     CANCELLED,
     ATTENDED,
 }
-

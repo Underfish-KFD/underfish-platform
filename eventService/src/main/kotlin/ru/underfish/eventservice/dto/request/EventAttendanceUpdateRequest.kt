@@ -6,4 +6,3 @@ data class EventAttendanceUpdateRequest(
     @field:NotBlank
     val status: String,
 )
-

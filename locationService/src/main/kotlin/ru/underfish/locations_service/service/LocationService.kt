@@ -9,19 +9,19 @@ import ru.underfish.locations_service.exeption.NotFoundException
 
 @Service
 class LocationService(
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
 ) {
-
     fun createLocation(request: LocationRequest): LocationResponse {
-        val location = Location(
-            latitude = request.latitude,
-            longitude = request.longitude,
-            address = request.address,
-            city = request.city,
-            district = request.district,
-            placeName = request.placeName,
-            timezone = request.timezone
-        )
+        val location =
+            Location(
+                latitude = request.latitude,
+                longitude = request.longitude,
+                address = request.address,
+                city = request.city,
+                district = request.district,
+                placeName = request.placeName,
+                timezone = request.timezone,
+            )
 
         val savedLocation = locationRepository.save(location)
         return LocationResponse.fromEntity(savedLocation)
@@ -32,7 +32,10 @@ class LocationService(
         return LocationResponse.fromEntity(location)
     }
 
-    fun updateLocation(locationId: Long, request: LocationRequest): LocationResponse {
+    fun updateLocation(
+        locationId: Long,
+        request: LocationRequest,
+    ): LocationResponse {
         val location = locationRepository.findLocationById(locationId) ?: throw NotFoundException("Location not found")
 
         location.latitude = request.latitude

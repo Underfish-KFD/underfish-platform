@@ -5,8 +5,10 @@ import ru.underfish.eventservice.database.entities.Review
 import java.util.UUID
 
 interface ReviewRepository : JpaRepository<Review, UUID> {
-    fun existsByEventIdAndUserId(eventId: UUID, userId: UUID): Boolean
+    fun existsByEventIdAndUserId(
+        eventId: UUID,
+        userId: UUID,
+    ): Boolean
 
     fun findByEventId(eventId: UUID): List<Review>
 }
-

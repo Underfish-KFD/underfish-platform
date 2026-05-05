@@ -7,4 +7,3 @@ data class EventTagRequest(
     @field:NotNull
     val tagId: UUID,
 )
-

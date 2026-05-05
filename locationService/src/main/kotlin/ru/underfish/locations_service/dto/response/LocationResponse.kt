@@ -1,7 +1,6 @@
 package ru.underfish.locations_service.dto.response
 
 import ru.underfish.locations_service.database.entities.Location
-import java.time.LocalDateTime
 import java.math.BigDecimal
 
 data class LocationResponse(
@@ -12,7 +11,7 @@ data class LocationResponse(
     val city: String?,
     val district: String?,
     val placeName: String?,
-    val timezone: String
+    val timezone: String,
 ) {
     companion object {
         fun fromEntity(location: Location): LocationResponse {
@@ -24,7 +23,7 @@ data class LocationResponse(
                 city = location.city ?: "",
                 district = location.district ?: "",
                 placeName = location.placeName ?: "",
-                timezone = location.timezone
+                timezone = location.timezone,
             )
         }
     }

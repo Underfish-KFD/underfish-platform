@@ -150,4 +150,3 @@ class EventService(
         EventStatus.entries.firstOrNull { it.name.equals(status, ignoreCase = true) }
             ?: throw BadRequestException("Invalid event status")
 }
-

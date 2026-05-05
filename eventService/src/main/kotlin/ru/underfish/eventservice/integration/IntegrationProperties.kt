@@ -8,4 +8,3 @@ data class IntegrationProperties(
     var profileServiceBaseUrl: String = "http://localhost:8084",
     var locationServiceBaseUrl: String = "http://localhost:8082",
 )
-

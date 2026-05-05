@@ -19,4 +19,3 @@ abstract class AbstractEntity {
     @CreationTimestamp
     var createdAt: LocalDateTime = LocalDateTime.now()
 }
-

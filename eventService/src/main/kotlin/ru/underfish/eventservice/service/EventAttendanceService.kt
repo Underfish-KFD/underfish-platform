@@ -90,4 +90,3 @@ class EventAttendanceService(
         AttendanceStatus.entries.firstOrNull { it.name.equals(status, ignoreCase = true) }
             ?: throw BadRequestException("Invalid attendance status")
 }
-

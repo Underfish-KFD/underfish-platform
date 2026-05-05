@@ -54,11 +54,12 @@ object EventSpecifications {
         }
 
         if (filter.tagIds.isNotEmpty()) {
-            spec = spec.and { root, query, cb ->
-                query.distinct(true)
-                val tagsJoin = root.join<Event, Tag>("tags", JoinType.LEFT)
-                tagsJoin.get<Any>("id").`in`(filter.tagIds)
-            }
+            spec =
+                spec.and { root, query, cb ->
+                    query.distinct(true)
+                    val tagsJoin = root.join<Event, Tag>("tags", JoinType.LEFT)
+                    tagsJoin.get<Any>("id").`in`(filter.tagIds)
+                }
         }
 
         return spec
@@ -68,4 +69,3 @@ object EventSpecifications {
         EventStatus.entries.firstOrNull { it.name.equals(raw, ignoreCase = true) }
             ?: throw IllegalArgumentException("Invalid event status")
 }
-

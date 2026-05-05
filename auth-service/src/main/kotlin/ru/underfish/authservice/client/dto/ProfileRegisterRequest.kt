@@ -7,4 +7,3 @@ data class ProfileRegisterRequest(
     val lastName: String,
     val phone: String? = null,
 )
-

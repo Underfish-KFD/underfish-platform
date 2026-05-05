@@ -17,21 +17,23 @@ class ReviewResponseTest {
         val eventId = UUID.randomUUID()
         val createdAt = LocalDateTime.of(2026, 5, 4, 12, 0)
 
-        val event = Event(organizerId = UUID.randomUUID(), title = "Event").apply {
-            id = eventId
-            description = "Description"
-            startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
-            endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
-            locationId = UUID.randomUUID()
-            eventStatus = EventStatus.PUBLISHED
-        }
+        val event =
+            Event(organizerId = UUID.randomUUID(), title = "Event").apply {
+                id = eventId
+                description = "Description"
+                startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
+                endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
+                locationId = UUID.randomUUID()
+                eventStatus = EventStatus.PUBLISHED
+            }
 
-        val review = Review(event = event, userId = userId).apply {
-            id = reviewId
-            rating = 5
-            comment = "Great event"
-            this.createdAt = createdAt
-        }
+        val review =
+            Review(event = event, userId = userId).apply {
+                id = reviewId
+                rating = 5
+                comment = "Great event"
+                this.createdAt = createdAt
+            }
 
         val response = ReviewResponse.fromEntity(review)
 
@@ -45,19 +47,21 @@ class ReviewResponseTest {
 
     @Test
     fun `fromEntity generates fallback values when ids are missing`() {
-        val event = Event(organizerId = UUID.randomUUID(), title = "Fallback event").apply {
-            description = "Description"
-            startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
-            endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
-            locationId = UUID.randomUUID()
-            eventStatus = EventStatus.DRAFT
-        }
+        val event =
+            Event(organizerId = UUID.randomUUID(), title = "Fallback event").apply {
+                description = "Description"
+                startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
+                endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
+                locationId = UUID.randomUUID()
+                eventStatus = EventStatus.DRAFT
+            }
 
-        val review = Review(event = event, userId = UUID.randomUUID()).apply {
-            rating = 4
-            comment = "Nice"
-            this.createdAt = null
-        }
+        val review =
+            Review(event = event, userId = UUID.randomUUID()).apply {
+                rating = 4
+                comment = "Nice"
+                this.createdAt = null
+            }
 
         val response = ReviewResponse.fromEntity(review)
 
@@ -68,4 +72,3 @@ class ReviewResponseTest {
         assertNotNull(response.createdAt)
     }
 }
-

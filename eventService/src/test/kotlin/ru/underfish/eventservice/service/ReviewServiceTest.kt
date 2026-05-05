@@ -27,14 +27,15 @@ class ReviewServiceTest {
     fun `createReview should save review when it does not exist yet`() {
         val eventId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        val event = Event(organizerId = UUID.randomUUID(), title = "Kotlin meetup").apply {
-            id = eventId
-            description = "Event description"
-            startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
-            endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
-            locationId = UUID.randomUUID()
-            eventStatus = EventStatus.PUBLISHED
-        }
+        val event =
+            Event(organizerId = UUID.randomUUID(), title = "Kotlin meetup").apply {
+                id = eventId
+                description = "Event description"
+                startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
+                endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
+                locationId = UUID.randomUUID()
+                eventStatus = EventStatus.PUBLISHED
+            }
         val request = ReviewRequest(rating = 5, comment = "Great event")
 
         whenever(reviewRepository.existsByEventIdAndUserId(eventId, userId)).thenReturn(false)
@@ -62,4 +63,3 @@ class ReviewServiceTest {
         }
     }
 }
-

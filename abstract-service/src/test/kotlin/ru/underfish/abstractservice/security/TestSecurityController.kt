@@ -10,4 +10,3 @@ class TestSecurityController {
     @GetMapping("/me")
     fun me(currentUserProvider: CurrentUserProvider): String = currentUserProvider.getRequired().userId
 }
-

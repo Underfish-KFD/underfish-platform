@@ -6,4 +6,3 @@ data class GatewayPrincipal(
     val roles: List<String>,
     val authSource: String?,
 )
-

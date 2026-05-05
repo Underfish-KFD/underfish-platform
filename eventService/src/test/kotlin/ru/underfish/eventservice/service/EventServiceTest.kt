@@ -8,7 +8,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import ru.underfish.eventservice.database.dao.EventRepository
 import ru.underfish.eventservice.database.dao.TagRepository
-import ru.underfish.eventservice.database.entities.enums.EventStatus
 import ru.underfish.eventservice.dto.request.EventRequest
 import ru.underfish.eventservice.exception.BadRequestException
 import ru.underfish.eventservice.integration.InternalLookupClient
@@ -78,4 +77,3 @@ class EventServiceTest {
         }
     }
 }
-

@@ -11,4 +11,3 @@ data class ReviewRequest(
     @field:NotBlank
     val comment: String,
 )
-

@@ -9,4 +9,3 @@ data class ErrorResponse(
     val path: String,
     val timestamp: LocalDateTime = LocalDateTime.now(),
 )
-

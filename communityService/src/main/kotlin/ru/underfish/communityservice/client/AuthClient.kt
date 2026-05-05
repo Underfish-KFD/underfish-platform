@@ -20,6 +20,7 @@ class AuthClient {
      * Returning an empty map so existing callers that only check for non-null
      * or for success continue to work while Feign is removed.
      */
-    fun getUser(@Suppress("UNUSED_PARAMETER") id: UUID): Map<String, Any> = emptyMap()
+    fun getUser(
+        @Suppress("UNUSED_PARAMETER") id: UUID,
+    ): Map<String, Any> = emptyMap()
 }
-

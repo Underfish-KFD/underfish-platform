@@ -4,4 +4,3 @@ data class EventPageResponse(
     val content: List<EventResponse>,
     val meta: PageMeta,
 )
-

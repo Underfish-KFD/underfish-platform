@@ -10,4 +10,3 @@ class Tag(
     @Column(name = "name", nullable = false, unique = true, length = 100)
     var name: String,
 ) : AbstractEntity()
-

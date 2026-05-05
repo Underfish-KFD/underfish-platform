@@ -55,4 +55,3 @@ class GatewayHeaderAuthenticationFilterTest {
             .andExpect(content().string("user-42"))
     }
 }
-

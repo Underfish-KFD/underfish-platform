@@ -3,8 +3,6 @@ package ru.underfish.communityservice.service
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -24,13 +22,14 @@ class CommunityMemberServiceTest {
     private val communityOrganizerService: CommunityOrganizerService = mock()
     private val authClient: AuthClient = mock()
 
-    private val service = CommunityMemberService(
-        memberRepo,
-        communityRepo,
-        currentUserProvider,
-        communityOrganizerService,
-        authClient,
-    )
+    private val service =
+        CommunityMemberService(
+            memberRepo,
+            communityRepo,
+            currentUserProvider,
+            communityOrganizerService,
+            authClient,
+        )
 
     @Test
     fun `addMember should throw NotFound when auth client reports missing user`() {
@@ -41,18 +40,18 @@ class CommunityMemberServiceTest {
         whenever(authClient.getUser(userId)).thenThrow(RuntimeException("not found"))
 
         // stub current user provider to return the same user (self) so permission check passes
-        whenever(currentUserProvider.getRequired()).thenReturn(
-            ru.underfish.communityservice.security.GatewayPrincipal(
-                userId = userId.toString(),
-                email = null,
-                roles = listOf("USER"),
-                authSource = null,
-            ),
-        )
+        whenever(currentUserProvider.getRequired())
+            .thenReturn(
+                ru.underfish.communityservice.security.GatewayPrincipal(
+                    userId = userId.toString(),
+                    email = null,
+                    roles = listOf("USER"),
+                    authSource = null,
+                ),
+            )
 
         assertThrows(NotFoundException::class.java) {
             service.addMember(communityId, request)
         }
     }
 }
-

@@ -8,8 +8,8 @@ import org.mockito.kotlin.whenever
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import ru.underfish.communityservice.client.AuthClient
 import ru.underfish.communityservice.database.dao.CommunityOrganizerRepository
-import ru.underfish.communityservice.security.CurrentUserProvider
 import ru.underfish.communityservice.exception.NotFoundException
+import ru.underfish.communityservice.security.CurrentUserProvider
 import java.util.UUID
 
 @ExtendWith(SpringExtension::class)
@@ -18,11 +18,12 @@ class CommunityOrganizerServiceTest {
     private val currentUserProvider: CurrentUserProvider = mock()
     private val authClient: AuthClient = mock()
 
-    private val service = CommunityOrganizerService(
-        organizerRepo,
-        currentUserProvider,
-        authClient,
-    )
+    private val service =
+        CommunityOrganizerService(
+            organizerRepo,
+            currentUserProvider,
+            authClient,
+        )
 
     @Test
     fun `addOrganizer should throw NotFound when auth client reports missing user`() {
@@ -31,18 +32,18 @@ class CommunityOrganizerServiceTest {
 
         whenever(authClient.getUser(userId)).thenThrow(RuntimeException("not found"))
 
-        whenever(currentUserProvider.getRequired()).thenReturn(
-            ru.underfish.communityservice.security.GatewayPrincipal(
-                userId = userId.toString(),
-                email = null,
-                roles = listOf("USER"),
-                authSource = null,
-            ),
-        )
+        whenever(currentUserProvider.getRequired())
+            .thenReturn(
+                ru.underfish.communityservice.security.GatewayPrincipal(
+                    userId = userId.toString(),
+                    email = null,
+                    roles = listOf("USER"),
+                    authSource = null,
+                ),
+            )
 
         assertThrows(NotFoundException::class.java) {
             service.addOrganizer(communityId, userId)
         }
     }
 }
-

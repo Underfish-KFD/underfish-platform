@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class LocationsServiceApplication
 
 fun main(args: Array<String>) {
-	runApplication<LocationsServiceApplication>(*args)
+    runApplication<LocationsServiceApplication>(*args)
 }

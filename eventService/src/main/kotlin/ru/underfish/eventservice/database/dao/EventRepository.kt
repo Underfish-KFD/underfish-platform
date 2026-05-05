@@ -6,4 +6,3 @@ import ru.underfish.eventservice.database.entities.Event
 import java.util.UUID
 
 interface EventRepository : JpaRepository<Event, UUID>, JpaSpecificationExecutor<Event>
-

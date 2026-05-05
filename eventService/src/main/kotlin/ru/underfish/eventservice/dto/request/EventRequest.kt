@@ -24,4 +24,3 @@ data class EventRequest(
     val maxParticipants: Int? = null,
     val isOnline: Boolean? = null,
 )
-

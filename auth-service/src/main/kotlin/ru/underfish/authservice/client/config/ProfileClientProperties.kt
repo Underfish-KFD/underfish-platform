@@ -9,4 +9,3 @@ data class ProfileClientProperties(
     var internalRoles: String = "ADMIN",
     var authSource: String = "auth-service",
 )
-

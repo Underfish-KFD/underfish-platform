@@ -6,4 +6,3 @@ data class TagRequest(
     @field:NotBlank
     val name: String,
 )
-

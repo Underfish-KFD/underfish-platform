@@ -6,4 +6,3 @@ enum class EventStatus {
     CANCELLED,
     COMPLETED,
 }
-

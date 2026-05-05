@@ -19,4 +19,3 @@ class ProfileClientConfig(
             template.header("X-Auth-Source", props.authSource)
         }
 }
-

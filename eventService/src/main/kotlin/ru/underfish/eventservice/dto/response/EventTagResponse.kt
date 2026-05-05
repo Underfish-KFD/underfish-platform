@@ -6,4 +6,3 @@ data class EventTagResponse(
     val eventId: UUID,
     val tagId: UUID,
 )
-

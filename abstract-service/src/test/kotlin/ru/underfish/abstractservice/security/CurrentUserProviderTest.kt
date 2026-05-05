@@ -54,10 +54,18 @@ class CurrentUserProviderTest {
         assertFalse(currentUserProvider.hasRole("USER"))
     }
 
-    private fun setPrincipal(userId: String, roles: List<String>) {
-        val principal = GatewayPrincipal(userId = userId, email = null, roles = roles, authSource = "gateway")
+    private fun setPrincipal(
+        userId: String,
+        roles: List<String>,
+    ) {
+        val principal =
+            GatewayPrincipal(
+                userId = userId,
+                email = null,
+                roles = roles,
+                authSource = "gateway",
+            )
         val auth = UsernamePasswordAuthenticationToken(principal, null, emptyList())
         SecurityContextHolder.getContext().authentication = auth
     }
 }
-

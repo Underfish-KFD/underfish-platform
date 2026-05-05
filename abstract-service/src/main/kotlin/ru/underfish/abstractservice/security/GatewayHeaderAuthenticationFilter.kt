@@ -49,26 +49,29 @@ class GatewayHeaderAuthenticationFilter(
             return
         }
 
-        val roles = rawRoles.split(gatewaySecurityProperties.rolesDelimiter)
-            .map(String::trim)
-            .filter(String::isNotBlank)
+        val roles =
+            rawRoles.split(gatewaySecurityProperties.rolesDelimiter)
+                .map(String::trim)
+                .filter(String::isNotBlank)
 
         if (roles.isEmpty()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No roles provided by gateway")
             return
         }
 
-        val principal = GatewayPrincipal(
-            userId = userId,
-            email = request.getHeader(headers.userEmail)?.trim()?.ifBlank { null },
-            roles = roles,
-            authSource = request.getHeader(headers.authSource)?.trim()?.ifBlank { null },
-        )
+        val principal =
+            GatewayPrincipal(
+                userId = userId,
+                email = request.getHeader(headers.userEmail)?.trim()?.ifBlank { null },
+                roles = roles,
+                authSource = request.getHeader(headers.authSource)?.trim()?.ifBlank { null },
+            )
 
-        val authorities = roles.map { role ->
-            val normalized = if (role.startsWith("ROLE_")) role else "ROLE_$role"
-            SimpleGrantedAuthority(normalized)
-        }
+        val authorities =
+            roles.map { role ->
+                val normalized = if (role.startsWith("ROLE_")) role else "ROLE_$role"
+                SimpleGrantedAuthority(normalized)
+            }
 
         val authentication = UsernamePasswordAuthenticationToken(principal, null, authorities)
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)

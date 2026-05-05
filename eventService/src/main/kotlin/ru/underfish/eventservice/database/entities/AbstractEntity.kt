@@ -21,4 +21,3 @@ abstract class AbstractEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null
 }
-

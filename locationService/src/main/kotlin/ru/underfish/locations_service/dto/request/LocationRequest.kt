@@ -9,5 +9,5 @@ data class LocationRequest(
     val city: String?,
     val district: String?,
     val placeName: String?,
-    val timezone: String
+    val timezone: String,
 )

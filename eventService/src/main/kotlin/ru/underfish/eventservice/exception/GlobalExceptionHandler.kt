@@ -41,7 +41,12 @@ class GlobalExceptionHandler {
     fun handleGeneric(
         ex: Exception,
         request: HttpServletRequest,
-    ): ResponseEntity<ErrorResponse> = buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.message ?: "Internal error", request)
+    ): ResponseEntity<ErrorResponse> =
+        buildResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ex.message ?: "Internal error",
+            request,
+        )
 
     private fun buildResponse(
         status: HttpStatus,
@@ -57,4 +62,3 @@ class GlobalExceptionHandler {
             ),
         )
 }
-

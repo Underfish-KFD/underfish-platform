@@ -16,4 +16,3 @@ data class EventSearchFilter(
     val communityId: UUID? = null,
     val organizerId: UUID? = null,
 )
-

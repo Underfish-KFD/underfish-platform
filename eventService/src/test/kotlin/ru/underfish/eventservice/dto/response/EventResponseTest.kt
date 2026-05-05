@@ -18,21 +18,22 @@ class EventResponseTest {
         val createdAt = LocalDateTime.of(2026, 5, 4, 10, 15)
         val updatedAt = LocalDateTime.of(2026, 5, 4, 11, 30)
 
-        val event = Event(organizerId = organizerId, title = "Kotlin meetup").apply {
-            id = eventId
-            description = "Event description"
-            startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
-            endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
-            this.locationId = locationId
-            price = BigDecimal("199.90")
-            currency = "RUB"
-            posterUrl = "https://example.com/poster.png"
-            eventStatus = EventStatus.PUBLISHED
-            this.createdAt = createdAt
-            this.updatedAt = updatedAt
-            maxParticipants = 120
-            isOnline = true
-        }
+        val event =
+            Event(organizerId = organizerId, title = "Kotlin meetup").apply {
+                id = eventId
+                description = "Event description"
+                startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
+                endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
+                this.locationId = locationId
+                price = BigDecimal("199.90")
+                currency = "RUB"
+                posterUrl = "https://example.com/poster.png"
+                eventStatus = EventStatus.PUBLISHED
+                this.createdAt = createdAt
+                this.updatedAt = updatedAt
+                maxParticipants = 120
+                isOnline = true
+            }
 
         val response = EventResponse.fromEntity(event)
 
@@ -57,20 +58,21 @@ class EventResponseTest {
         val organizerId = UUID.randomUUID()
         val locationId = UUID.randomUUID()
 
-        val event = Event(organizerId = organizerId, title = "Fallback meetup").apply {
-            description = "Fallback description"
-            startDatetime = LocalDateTime.of(2026, 6, 1, 12, 0)
-            endDatetime = null
-            this.locationId = locationId
-            price = BigDecimal.ZERO
-            currency = "RUB"
-            posterUrl = null
-            eventStatus = EventStatus.DRAFT
-            this.createdAt = null
-            this.updatedAt = LocalDateTime.of(2026, 6, 1, 12, 30)
-            maxParticipants = 0
-            isOnline = false
-        }
+        val event =
+            Event(organizerId = organizerId, title = "Fallback meetup").apply {
+                description = "Fallback description"
+                startDatetime = LocalDateTime.of(2026, 6, 1, 12, 0)
+                endDatetime = null
+                this.locationId = locationId
+                price = BigDecimal.ZERO
+                currency = "RUB"
+                posterUrl = null
+                eventStatus = EventStatus.DRAFT
+                this.createdAt = null
+                this.updatedAt = LocalDateTime.of(2026, 6, 1, 12, 30)
+                maxParticipants = 0
+                isOnline = false
+            }
 
         val response = EventResponse.fromEntity(event)
 
@@ -87,4 +89,3 @@ class EventResponseTest {
         assertEquals(false, response.isOnline)
     }
 }
-

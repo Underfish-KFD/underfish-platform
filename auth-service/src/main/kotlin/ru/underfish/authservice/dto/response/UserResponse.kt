@@ -12,4 +12,3 @@ data class UserResponse(
     val registrationDate: LocalDateTime,
     val lastLogin: LocalDateTime? = null,
 )
-
