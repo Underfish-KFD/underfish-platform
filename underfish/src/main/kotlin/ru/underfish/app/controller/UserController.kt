@@ -15,13 +15,13 @@ import ru.underfish.app.service.UserService
 class UserController(
     private val userService: UserService,
 ) {
-    @PostMapping("/register", "/register/")
+    @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(
         @RequestBody request: UserRegistrationRequest,
     ): UserResponse = userService.registerUser(request)
 
-    @PostMapping("/login", "/login/")
+    @PostMapping("/login")
     fun loginUser(
         @RequestBody request: UserLoginRequest,
     ): UserLoginResponse = userService.loginUser(request)

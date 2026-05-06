@@ -265,7 +265,7 @@ class RegistrationE2ETest {
 
         val (myAttendanceCode, myAttendanceResp) = getJsonWithBearer("$gatewayBase/api/v1/events/me/attendence", attendeeToken)
         assertTrue(myAttendanceCode in 200..299, "Expected my attendance 2xx, got $myAttendanceCode, body: $myAttendanceResp")
-        val myEventIds: List<Long> = mapper.readValue(myAttendanceResp)
-        assertTrue(myEventIds.contains(eventId.toLong()), "Expected event id $eventId in my attendence list, body: $myAttendanceResp")
+        val myEventIds: List<String> = mapper.readValue(myAttendanceResp)
+        assertTrue(myEventIds.contains(eventId), "Expected event id $eventId in my attendence list, body: $myAttendanceResp")
     }
 }

@@ -10,6 +10,7 @@ import ru.underfish.eventservice.database.entities.enums.AttendanceStatus
 import ru.underfish.eventservice.dto.response.EventAttendanceResponse
 import ru.underfish.eventservice.exception.BadRequestException
 import ru.underfish.eventservice.exception.NotFoundException
+import ru.underfish.eventservice.exception.UnauthorizedException
 import ru.underfish.eventservice.integration.InternalLookupClient
 import java.util.UUID
 
@@ -19,6 +20,17 @@ class EventAttendanceService(
     private val eventRepository: EventRepository,
     private val internalLookupClient: InternalLookupClient,
 ) {
+    fun getAttendedEventIdsForUser(
+        requestedUserId: UUID,
+        currentUserId: UUID,
+        isAdmin: Boolean,
+    ): List<UUID> {
+        if (!isAdmin && requestedUserId != currentUserId) {
+            throw UnauthorizedException("You can view only your own attendance list")
+        }
+        return eventAttendanceRepository.findByUserId(requestedUserId).mapNotNull { it.event.id }
+    }
+
     @Transactional
     fun addAttendance(
         eventId: UUID,
@@ -90,4 +102,3 @@ class EventAttendanceService(
         AttendanceStatus.entries.firstOrNull { it.name.equals(status, ignoreCase = true) }
             ?: throw BadRequestException("Invalid attendance status")
 }
-

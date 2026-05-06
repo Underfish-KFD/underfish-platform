@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 
 data class EventResponse(
     val eventId: String,
-    val organizerId: String,
     val title: String,
     val description: String,
     val startDatetime: LocalDateTime,
@@ -24,7 +23,6 @@ data class EventResponse(
         fun fromEntity(event: Event): EventResponse =
             EventResponse(
                 eventId = event.id.toString(),
-                organizerId = event.user.id.toString(),
                 title = event.title ?: "",
                 description = event.description ?: "",
                 startDatetime = event.startDatetime ?: event.createdAt,

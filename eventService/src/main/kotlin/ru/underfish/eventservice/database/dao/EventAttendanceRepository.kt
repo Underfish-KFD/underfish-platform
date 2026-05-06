@@ -15,5 +15,6 @@ interface EventAttendanceRepository : JpaRepository<EventAttendance, UUID> {
     fun findByEventIdAndStatus(eventId: UUID, status: AttendanceStatus, pageable: Pageable): Page<EventAttendance>
 
     fun findByEventIdAndUserId(eventId: UUID, userId: UUID): EventAttendance?
-}
 
+    fun findByUserId(userId: UUID): List<EventAttendance>
+}
