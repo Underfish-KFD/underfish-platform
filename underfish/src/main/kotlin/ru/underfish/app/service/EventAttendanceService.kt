@@ -9,6 +9,7 @@ import ru.underfish.app.database.entities.enums.AttendanceStatus
 import ru.underfish.app.dto.response.EventAttendanceResponse
 import ru.underfish.app.exception.BadRequestException
 import ru.underfish.app.exception.NotFoundException
+import ru.underfish.app.exception.UnauthorizedException
 
 @Service
 class EventAttendanceService(
@@ -16,6 +17,18 @@ class EventAttendanceService(
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
 ) {
+    fun getAttendedEventIdsForUser(
+        requestedUserId: Long,
+        currentUserId: Long,
+        isAdmin: Boolean,
+    ): List<Long> {
+        if (!isAdmin && requestedUserId != currentUserId) {
+            throw UnauthorizedException("You can view only your own attendance list")
+        }
+
+        return eventAttendanceRepository.findByUserId(requestedUserId).map { it.event.id }
+    }
+
     fun addAttendance(
         eventId: Long,
         userId: Long,
