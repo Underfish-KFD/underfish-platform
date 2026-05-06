@@ -10,7 +10,7 @@ data class MinioProperties(
     val endpoint: String = "http://localhost:9000",
     val accessKey: String = "minioadmin",
     val secretKey: String = "minioadmin",
-    val bucket: String = "documents",
+    val bucket: String = "underfish-files",
 )
 
 @Configuration

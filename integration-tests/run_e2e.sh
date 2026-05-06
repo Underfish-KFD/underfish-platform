@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+print_result() {
+  local status=$?
+  if [[ "$status" -eq 0 ]]; then
+    echo "E2E RESULT: OK"
+  else
+    echo "E2E RESULT: FAIL (exit=$status)" >&2
+  fi
+}
+trap print_result EXIT
+
+
 # Simple E2E test script for local stack
 # Requirements: curl, jq, psql (Postgres client)
 # Usage:
@@ -13,11 +24,13 @@ set -euo pipefail
 #   ./integration-tests/run_e2e.sh
 #
 # The script registers a user, validates that the JWT is RS256,
-# creates a community as that user, creates an event under that community,
-# and checks that the auth user is persisted in DB.
+# verifies login and refresh-token endpoints, verifies that profile was created,
+# creates a community and event as that user, and checks that the auth user is persisted in DB.
 
 GATEWAY_URL=${GATEWAY_URL:-http://localhost:8080}
 REGISTER_PATH=${REGISTER_PATH:-/api/v1/users/register}
+LOGIN_PATH=${LOGIN_PATH:-/api/v1/users/login}
+REFRESH_PATH=${REFRESH_PATH:-/api/v1/tokens/refresh}
 EXPECT_JWT_ALG=${EXPECT_JWT_ALG:-RS256}
 DEBUG=${DEBUG:-0}
 DB_HOST=${DB_HOST:-localhost}
@@ -133,11 +146,11 @@ check_readiness() {
 
   local failed=0
   wait_for_http gateway "$GATEWAY_URL/actuator/health" || failed=1
-  wait_for_tcp auth-service localhost 8091 || failed=1
-  wait_for_tcp profile-service localhost 8082 || failed=1
-  wait_for_tcp community-service localhost 8084 || failed=1
-  wait_for_tcp event-service localhost 8083 || failed=1
-  wait_for_tcp location-service localhost 8081 || failed=1
+  wait_for_http auth-service "http://localhost:8091/actuator/health" || failed=1
+  wait_for_http profile-service "http://localhost:8082/actuator/health" || failed=1
+  wait_for_http community-service "http://localhost:8084/actuator/health" || failed=1
+  wait_for_http event-service "http://localhost:8083/actuator/health" || failed=1
+  wait_for_http location-service "http://localhost:8081/actuator/health" || failed=1
 
   if [[ "$failed" -ne 0 ]]; then
     echo "One or more services are not ready." >&2
@@ -196,12 +209,18 @@ fi
 rm -f "$HTTP_HEADERS"
 
 TOKEN=$(echo "$BODY" | jq -r '.token // .accessToken // .access_token // empty')
+REFRESH_TOKEN=$(echo "$BODY" | jq -r '.refreshToken // .refresh_token // empty')
 if [[ -z "$TOKEN" ]]; then
   echo "No token found in response: $BODY" >&2
   exit 4
 fi
+if [[ -z "$REFRESH_TOKEN" ]]; then
+  echo "No refresh token found in response: $BODY" >&2
+  exit 4
+fi
 
 echo "Token received: ${TOKEN:0:40}..."
+echo "Refresh token received: ${REFRESH_TOKEN:0:40}..."
 
 decode_base64url() {
   local value="$1"
@@ -245,6 +264,136 @@ if [[ "$EMAIL_IN_TOKEN" != "$EMAIL" ]]; then
   exit 9
 fi
 
+USER_ID=$(echo "$DECODED_PAYLOAD" | jq -r '.userId // empty')
+if [[ -z "$USER_ID" ]]; then
+  echo "Numeric userId not found in access token payload: $DECODED_PAYLOAD" >&2
+  exit 20
+fi
+
+LOGIN_URL="$GATEWAY_URL$LOGIN_PATH"
+echo "Logging in user $EMAIL -> $LOGIN_URL"
+LOGIN_REQ=$(jq -n --arg email "$EMAIL" --arg password "$PASSWORD" '{email:$email, password:$password}')
+LOGIN_RESPONSE=$(mktemp)
+LOGIN_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  LOGIN_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json' -d "$LOGIN_REQ" -D "$LOGIN_HEADERS" -w '%{http_code}' "$LOGIN_URL" -o "$LOGIN_RESPONSE")
+  set +x
+else
+  LOGIN_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$LOGIN_REQ" -D "$LOGIN_HEADERS" -w '%{http_code}' "$LOGIN_URL" -o "$LOGIN_RESPONSE")
+fi
+LOGIN_BODY=$(cat "$LOGIN_RESPONSE")
+rm -f "$LOGIN_RESPONSE"
+echo "Login HTTP $LOGIN_STATUS"
+if [[ $LOGIN_STATUS -lt 200 || $LOGIN_STATUS -ge 300 ]]; then
+  echo "Login failed, body:" >&2
+  echo "$LOGIN_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$LOGIN_HEADERS" >&2
+  dump_container_logs uf_gateway uf_auth
+  rm -f "$LOGIN_HEADERS"
+  exit 15
+fi
+rm -f "$LOGIN_HEADERS"
+
+LOGIN_TOKEN=$(echo "$LOGIN_BODY" | jq -r '.token // .accessToken // .access_token // empty')
+LOGIN_REFRESH_TOKEN=$(echo "$LOGIN_BODY" | jq -r '.refreshToken // .refresh_token // empty')
+if [[ -z "$LOGIN_TOKEN" || -z "$LOGIN_REFRESH_TOKEN" ]]; then
+  echo "Login response does not contain access and refresh tokens: $LOGIN_BODY" >&2
+  exit 16
+fi
+TOKEN="$LOGIN_TOKEN"
+REFRESH_TOKEN="$LOGIN_REFRESH_TOKEN"
+echo "Login token received: ${TOKEN:0:40}..."
+
+BAD_LOGIN_REQ=$(jq -n --arg email "$EMAIL" --arg password "wrong-password" '{email:$email, password:$password}')
+BAD_LOGIN_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$BAD_LOGIN_REQ" -w '%{http_code}' "$LOGIN_URL" -o /dev/null)
+if [[ "$BAD_LOGIN_STATUS" != "401" ]]; then
+  echo "Bad login returned HTTP $BAD_LOGIN_STATUS instead of 401" >&2
+  exit 17
+fi
+
+REFRESH_URL="$GATEWAY_URL$REFRESH_PATH"
+echo "Refreshing token -> $REFRESH_URL"
+REFRESH_REQ=$(jq -n --arg refreshToken "$REFRESH_TOKEN" '{refreshToken:$refreshToken}')
+REFRESH_RESPONSE=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  REFRESH_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+  set +x
+else
+  REFRESH_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+fi
+REFRESH_BODY=$(cat "$REFRESH_RESPONSE")
+rm -f "$REFRESH_RESPONSE"
+echo "Refresh HTTP $REFRESH_STATUS"
+if [[ $REFRESH_STATUS -lt 200 || $REFRESH_STATUS -ge 300 ]]; then
+  echo "Token refresh failed, body:" >&2
+  echo "$REFRESH_BODY" >&2
+  dump_container_logs uf_gateway uf_auth
+  exit 18
+fi
+TOKEN=$(echo "$REFRESH_BODY" | jq -r '.token // .accessToken // .access_token // empty')
+if [[ -z "$TOKEN" ]]; then
+  echo "Refresh response does not contain access token: $REFRESH_BODY" >&2
+  exit 19
+fi
+
+
+PROFILE_RESPONSE=$(mktemp)
+PROFILE_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  PROFILE_STATUS=$(curl -v -sS -H "Authorization: Bearer $TOKEN" -D "$PROFILE_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/users/$USER_ID" -o "$PROFILE_RESPONSE")
+  set +x
+else
+  PROFILE_STATUS=$(curl -sS -H "Authorization: Bearer $TOKEN" -D "$PROFILE_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/users/$USER_ID" -o "$PROFILE_RESPONSE")
+fi
+PROFILE_BODY=$(cat "$PROFILE_RESPONSE")
+rm -f "$PROFILE_RESPONSE"
+echo "Profile HTTP $PROFILE_STATUS"
+if [[ $PROFILE_STATUS -lt 200 || $PROFILE_STATUS -ge 300 ]]; then
+  echo "Profile fetch failed, body:" >&2
+  echo "$PROFILE_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$PROFILE_HEADERS" >&2
+  dump_container_logs uf_gateway uf_profile
+  rm -f "$PROFILE_HEADERS"
+  exit 21
+fi
+rm -f "$PROFILE_HEADERS"
+
+PROFILE_EMAIL=$(echo "$PROFILE_BODY" | jq -r '.email // empty')
+PROFILE_ID=$(echo "$PROFILE_BODY" | jq -r '.user_id // .userId // empty')
+if [[ "$PROFILE_EMAIL" != "$EMAIL" || "$PROFILE_ID" != "$USER_ID" ]]; then
+  echo "Profile response mismatch, expected id=$USER_ID email=$EMAIL, body: $PROFILE_BODY" >&2
+  exit 22
+fi
+echo "Profile created and verified: id=$PROFILE_ID email=$PROFILE_EMAIL"
+
+TAG_REQ=$(jq -n --arg name "музыка-$USER_ID" '{name:$name}')
+TAG_RESPONSE=$(mktemp)
+TAG_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  TAG_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json; charset=utf-8' -H "Authorization: Bearer $TOKEN" -d "$TAG_REQ" -D "$TAG_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/tags" -o "$TAG_RESPONSE")
+  set +x
+else
+  TAG_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json; charset=utf-8' -H "Authorization: Bearer $TOKEN" -d "$TAG_REQ" -D "$TAG_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/tags" -o "$TAG_RESPONSE")
+fi
+TAG_BODY=$(cat "$TAG_RESPONSE")
+rm -f "$TAG_RESPONSE"
+echo "Tag HTTP $TAG_STATUS"
+if [[ $TAG_STATUS -lt 200 || $TAG_STATUS -ge 300 ]]; then
+  echo "Cyrillic tag creation failed, body:" >&2
+  echo "$TAG_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$TAG_HEADERS" >&2
+  dump_container_logs uf_gateway uf_event
+  rm -f "$TAG_HEADERS"
+  exit 23
+fi
+rm -f "$TAG_HEADERS"
 
 COMMUNITY_NAME="E2E Community $EMAIL"
 COMMUNITY_REQ=$(jq -n \
@@ -283,7 +432,7 @@ if [[ -z "$COMMUNITY_ID" ]]; then
 fi
 echo "Community created: $COMMUNITY_ID"
 
-LOCATION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+LOCATION_ID=${E2E_LOCATION_ID:-1}
 EVENT_REQ=$(jq -n \
   --arg title "E2E Event $EMAIL" \
   --arg description "Event created by integration test" \

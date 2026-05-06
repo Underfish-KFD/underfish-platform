@@ -17,10 +17,14 @@ class TagService(
 ) {
     @Transactional
     fun createTag(request: TagRequest): TagResponse {
-        if (tagRepository.existsByName(request.name)) {
-            throw BadRequestException("Tag with name '${request.name}' already exists")
+        val name = request.name.trim()
+        if (name.isBlank()) {
+            throw BadRequestException("Tag name must not be blank")
         }
-        return TagResponse(tagRepository.save(Tag(name = request.name.trim())))
+        if (tagRepository.existsByName(name)) {
+            throw BadRequestException("Tag with name '$name' already exists")
+        }
+        return TagResponse(tagRepository.save(Tag(name = name)))
     }
 
     fun getTags(
@@ -40,10 +44,14 @@ class TagService(
         request: TagRequest,
     ): TagResponse {
         val tag = tagRepository.findById(tagId).orElseThrow { NotFoundException("Tag not found") }
-        if (tagRepository.existsByNameAndIdNot(request.name, tagId)) {
-            throw BadRequestException("Tag with name '${request.name}' already exists")
+        val name = request.name.trim()
+        if (name.isBlank()) {
+            throw BadRequestException("Tag name must not be blank")
         }
-        tag.name = request.name.trim()
+        if (tagRepository.existsByNameAndIdNot(name, tagId)) {
+            throw BadRequestException("Tag with name '$name' already exists")
+        }
+        tag.name = name
         return TagResponse(tagRepository.save(tag))
     }
 
