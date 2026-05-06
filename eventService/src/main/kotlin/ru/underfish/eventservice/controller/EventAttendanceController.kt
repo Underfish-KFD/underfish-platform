@@ -59,3 +59,4 @@ class EventAttendanceController(
         eventAttendanceService.removeAttendance(eventId, userId)
     }
 }
+

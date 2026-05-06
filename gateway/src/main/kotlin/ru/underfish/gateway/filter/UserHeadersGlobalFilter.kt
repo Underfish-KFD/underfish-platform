@@ -19,12 +19,12 @@ class UserHeadersGlobalFilter(
 
     override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
         return exchange.getPrincipal<Authentication>()
-            .flatMap { auth ->
+             .flatMap { auth ->
                 if (!auth.isAuthenticated) {
-                    return@flatMap chain.filter(exchange)
-                }
+                     return@flatMap chain.filter(exchange)
+                 }
 
-                val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
+                 val jwt = auth.principal as? Jwt ?: return@flatMap chain.filter(exchange)
 
                 val userId = jwt.claims.stringClaim("user_id")
                     .ifBlank { jwt.claims.stringClaim("userId") }
@@ -47,9 +47,9 @@ class UserHeadersGlobalFilter(
                     .build()
 
                 chain.filter(exchange.mutate().request(mutatedRequest).build())
-            }
+             }
             .switchIfEmpty(chain.filter(exchange))
-    }
+     }
 
     private fun Map<String, Any>.stringClaim(name: String): String =
         this[name]?.toString()?.trim().orEmpty()
@@ -64,4 +64,4 @@ class UserHeadersGlobalFilter(
     companion object {
         private const val DEFAULT_USER_ROLE = "USER"
     }
-}
+ }

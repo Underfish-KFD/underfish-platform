@@ -25,3 +25,4 @@ class CurrentUserProvider {
                 UUID.nameUUIDFromBytes(deterministicUserId)
             }
 }
+

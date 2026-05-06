@@ -19,11 +19,16 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - auth-service
-      - profile-service
-      - community-service
-      - event-service
-      - location-service
+      auth-service:
+        condition: service_started
+      profile-service:
+        condition: service_started
+      community-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      location-service:
+        condition: service_started
     networks:
       - underfish_net
 
@@ -50,8 +55,10 @@ services:
     ports:
       - "8091:8091"
     depends_on:
-      - pg-auth
-      - profile-service
+      pg-auth:
+        condition: service_healthy
+      profile-service:
+        condition: service_started
     networks:
       - underfish_net
 
@@ -74,7 +81,8 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - pg-profile
+      pg-profile:
+        condition: service_healthy
     networks:
       - underfish_net
 
@@ -97,7 +105,8 @@ services:
     ports:
       - "8084:8084"
     depends_on:
-      - pg-community
+      pg-community:
+        condition: service_healthy
     networks:
       - underfish_net
 
@@ -119,9 +128,12 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - pg-event
-      - profile-service
-      - location-service
+      pg-event:
+        condition: service_healthy
+      profile-service:
+        condition: service_started
+      location-service:
+        condition: service_started
     networks:
       - underfish_net
 
@@ -142,7 +154,8 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - pg-geo
+      pg-geo:
+        condition: service_healthy
     networks:
       - underfish_net
 
@@ -164,8 +177,10 @@ services:
     ports:
       - "8085:8085"
     depends_on:
-      - pg-storage
-      - minio
+      pg-storage:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
       - underfish_net
 

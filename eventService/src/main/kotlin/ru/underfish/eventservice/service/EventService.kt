@@ -45,6 +45,7 @@ class EventService(
                 price = request.price?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
                 currency = request.currency ?: "RUB"
                 posterUrl = request.posterUrl
+                communityId = request.communityId
                 eventStatus = parseEventStatus(request.status)
                 updatedAt = LocalDateTime.now()
                 maxParticipants = request.maxParticipants ?: 0

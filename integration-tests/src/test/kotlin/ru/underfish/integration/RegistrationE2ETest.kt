@@ -144,3 +144,4 @@ class RegistrationE2ETest {
         }
     }
 }
+

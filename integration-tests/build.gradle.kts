@@ -1,3 +1,4 @@
+
 plugins {
     kotlin("jvm") version "1.9.25"
 }
@@ -21,3 +22,4 @@ tasks.withType<Test> {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
 }
+

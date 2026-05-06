@@ -25,11 +25,128 @@ DB_PORT=${DB_PORT:-5432}
 DB_NAME=${DB_NAME:-auth_db}
 DB_USER=${DB_USER:-auth_user}
 DB_PASS=${DB_PASS:-auth_pass}
+READINESS_TIMEOUT_SECONDS=${READINESS_TIMEOUT_SECONDS:-90}
+READINESS_INTERVAL_SECONDS=${READINESS_INTERVAL_SECONDS:-2}
+SKIP_READINESS_CHECKS=${SKIP_READINESS_CHECKS:-0}
 
 if [[ "$REGISTER_PATH" == "/api/auth/register" ]]; then
   echo "REGISTER_PATH=/api/auth/register is obsolete; using /api/v1/users/register" >&2
   REGISTER_PATH=/api/v1/users/register
 fi
+
+dump_container_logs() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  for container in "$@"; do
+    echo "--- docker logs --tail 120 $container ---" >&2
+    docker logs --tail 120 "$container" >&2 || true
+  done
+}
+
+check_required_containers() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local missing=0
+  local failed_containers=()
+  for container in \
+    uf_gateway \
+    uf_auth \
+    uf_profile \
+    uf_community \
+    uf_event \
+    uf_location \
+    uf_pg_auth \
+    uf_pg_profile \
+    uf_pg_community \
+    uf_pg_event \
+    uf_pg_geo
+  do
+    local state
+    state=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || true)
+    if [[ "$state" != "running" ]]; then
+      if [[ -z "$state" ]]; then
+        echo "Required container does not exist: $container" >&2
+      else
+        echo "Required container is not running: $container (state=$state)" >&2
+      fi
+      failed_containers+=("$container")
+      missing=1
+    fi
+  done
+
+  if [[ "$missing" -ne 0 ]]; then
+    echo "Required E2E containers are not ready." >&2
+    echo "If you recently ran 'docker compose ... down -v', do not restart only app containers with --no-deps." >&2
+    echo "Start the full stack instead: docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d" >&2
+    dump_container_logs "${failed_containers[@]}"
+    exit 2
+  fi
+}
+
+wait_for_http() {
+  local name="$1"
+  local url="$2"
+  local deadline=$((SECONDS + READINESS_TIMEOUT_SECONDS))
+
+  echo "Waiting for $name readiness: $url"
+  while (( SECONDS < deadline )); do
+    if curl -fsS --max-time 2 "$url" >/dev/null 2>&1; then
+      echo "$name is ready"
+      return 0
+    fi
+    sleep "$READINESS_INTERVAL_SECONDS"
+  done
+
+  echo "$name did not become ready within ${READINESS_TIMEOUT_SECONDS}s: $url" >&2
+  return 1
+}
+
+wait_for_tcp() {
+  local name="$1"
+  local host="$2"
+  local port="$3"
+  local deadline=$((SECONDS + READINESS_TIMEOUT_SECONDS))
+
+  echo "Waiting for $name port: $host:$port"
+  while (( SECONDS < deadline )); do
+    if (echo >"/dev/tcp/$host/$port") >/dev/null 2>&1; then
+      echo "$name port is accepting connections"
+      return 0
+    fi
+    sleep "$READINESS_INTERVAL_SECONDS"
+  done
+
+  echo "$name port did not open within ${READINESS_TIMEOUT_SECONDS}s: $host:$port" >&2
+  return 1
+}
+
+check_readiness() {
+  if [[ "$SKIP_READINESS_CHECKS" == "1" ]]; then
+    return 0
+  fi
+
+  check_required_containers
+
+  local failed=0
+  wait_for_http gateway "$GATEWAY_URL/actuator/health" || failed=1
+  wait_for_tcp auth-service localhost 8091 || failed=1
+  wait_for_tcp profile-service localhost 8082 || failed=1
+  wait_for_tcp community-service localhost 8084 || failed=1
+  wait_for_tcp event-service localhost 8083 || failed=1
+  wait_for_tcp location-service localhost 8081 || failed=1
+
+  if [[ "$failed" -ne 0 ]]; then
+    echo "One or more services are not ready." >&2
+    echo "If you recently ran 'docker compose ... down -v', do not restart only app containers with --no-deps." >&2
+    echo "Start the full stack instead: docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d" >&2
+    dump_container_logs uf_gateway uf_auth uf_profile uf_community uf_event uf_location
+    exit 2
+  fi
+}
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "Error: jq is required. Install it (brew install jq)" >&2
@@ -39,6 +156,8 @@ if ! command -v psql >/dev/null 2>&1; then
   echo "Error: psql is required. Install Postgres client (brew install libpq) and 'export PATH=/usr/local/opt/libpq/bin:$PATH' or similar" >&2
   exit 2
 fi
+
+check_readiness
 
 EMAIL="e2e-$(uuidgen | tr '[:upper:]' '[:lower:]')@example.com"
 PASSWORD=${E2E_PASSWORD:-P@ssw0rd123}
@@ -70,6 +189,7 @@ if [[ $HTTP_STATUS -lt 200 || $HTTP_STATUS -ge 300 ]]; then
   if [[ "$HTTP_STATUS" == "401" ]]; then
     echo "Hint: try REGISTER_PATH=/api/v1/users/register and check auth-service logs: docker logs --tail 200 uf_auth" >&2
   fi
+  dump_container_logs uf_gateway uf_auth
   rm -f "$HTTP_HEADERS"
   exit 3
 fi
@@ -150,6 +270,7 @@ if [[ $COMMUNITY_STATUS -lt 200 || $COMMUNITY_STATUS -ge 300 ]]; then
   echo "$COMMUNITY_BODY" >&2
   echo "Response headers:" >&2
   cat "$COMMUNITY_HEADERS" >&2
+  dump_container_logs uf_gateway uf_community
   rm -f "$COMMUNITY_HEADERS"
   exit 10
 fi
@@ -202,6 +323,7 @@ if [[ $EVENT_STATUS -lt 200 || $EVENT_STATUS -ge 300 ]]; then
   echo "$EVENT_BODY" >&2
   echo "Response headers:" >&2
   cat "$EVENT_HEADERS" >&2
+  dump_container_logs uf_gateway uf_event
   rm -f "$EVENT_HEADERS"
   exit 12
 fi
@@ -240,3 +362,4 @@ else
   echo "User not found in DB (count=$COUNT)" >&2
   exit 16
 fi
+
