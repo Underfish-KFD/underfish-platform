@@ -306,9 +306,16 @@ REFRESH_URL="$GATEWAY_URL$REFRESH_PATH"
 echo "Refreshing token -> $REFRESH_URL"
 REFRESH_REQ=$(jq -n --arg refreshToken "$REFRESH_TOKEN" '{refreshToken:$refreshToken}')
 REFRESH_RESPONSE=$(mktemp)
-REFRESH_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  REFRESH_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+  set +x
+else
+  REFRESH_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+fi
 REFRESH_BODY=$(cat "$REFRESH_RESPONSE")
 rm -f "$REFRESH_RESPONSE"
+echo "Refresh HTTP $REFRESH_STATUS"
 if [[ $REFRESH_STATUS -lt 200 || $REFRESH_STATUS -ge 300 ]]; then
   echo "Token refresh failed, body:" >&2
   echo "$REFRESH_BODY" >&2
