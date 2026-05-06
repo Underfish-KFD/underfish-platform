@@ -51,6 +51,7 @@ check_required_containers() {
   fi
 
   local missing=0
+  local failed_containers=()
   for container in \
     uf_gateway \
     uf_auth \
@@ -64,16 +65,24 @@ check_required_containers() {
     uf_pg_event \
     uf_pg_geo
   do
-    if [[ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null || true)" != "true" ]]; then
-      echo "Required container is not running: $container" >&2
+    local state
+    state=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || true)
+    if [[ "$state" != "running" ]]; then
+      if [[ -z "$state" ]]; then
+        echo "Required container does not exist: $container" >&2
+      else
+        echo "Required container is not running: $container (state=$state)" >&2
+      fi
+      failed_containers+=("$container")
       missing=1
     fi
   done
 
   if [[ "$missing" -ne 0 ]]; then
-    echo "Required E2E containers are missing." >&2
+    echo "Required E2E containers are not ready." >&2
     echo "If you recently ran 'docker compose ... down -v', do not restart only app containers with --no-deps." >&2
     echo "Start the full stack instead: docker compose -f docker-compose-infra.yml -f docker-compose-services.yml up -d" >&2
+    dump_container_logs "${failed_containers[@]}"
     exit 2
   fi
 }
