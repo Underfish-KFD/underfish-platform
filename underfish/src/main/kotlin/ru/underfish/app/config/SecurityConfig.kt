@@ -33,11 +33,7 @@ class SecurityConfig(
             }
             authorizeHttpRequests {
                 authorize("/api/v1/users/register", permitAll)
-                authorize("/api/v1/users/register/", permitAll)
-                authorize("/api/v1/users/register/**", permitAll)
                 authorize("/api/v1/users/login", permitAll)
-                authorize("/api/v1/users/login/", permitAll)
-                authorize("/api/v1/users/login/**", permitAll)
                 authorize("/api/v1/users/*", hasRole("ADMIN"))
                 authorize(anyRequest, hasRole("USER"))
             }
@@ -52,11 +48,7 @@ class SecurityConfig(
         http {
             authorizeHttpRequests {
                 authorize("/api/v1/users/register", permitAll)
-                authorize("/api/v1/users/register/", permitAll)
-                authorize("/api/v1/users/register/**", permitAll)
                 authorize("/api/v1/users/login", permitAll)
-                authorize("/api/v1/users/login/", permitAll)
-                authorize("/api/v1/users/login/**", permitAll)
                 authorize("/api/v1/users/*", hasRole("USER"))
                 authorize(anyRequest, permitAll)
             }

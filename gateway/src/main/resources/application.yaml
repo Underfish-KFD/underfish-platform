@@ -20,7 +20,7 @@ spring:
                         - id: auth-register-login
                           uri: ${AUTH_SERVICE_URI:http://localhost:8091}
                           predicates:
-                              - Path=/api/v1/users/register,/api/v1/users/register/,/api/v1/users/login,/api/v1/users/login/
+                              - Path=/api/v1/users/register,/api/v1/users/login
                               - Method=POST
 
                         - id: auth-tokens
