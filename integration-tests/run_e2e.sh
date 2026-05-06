@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+print_result() {
+  local status=$?
+  if [[ "$status" -eq 0 ]]; then
+    echo "E2E RESULT: OK"
+  else
+    echo "E2E RESULT: FAIL (exit=$status)" >&2
+  fi
+}
+trap print_result EXIT
+
+
 # Simple E2E test script for local stack
 # Requirements: curl, jq, psql (Postgres client)
 # Usage:
@@ -13,8 +24,8 @@ set -euo pipefail
 #   ./integration-tests/run_e2e.sh
 #
 # The script registers a user, validates that the JWT is RS256,
-# verifies login and refresh-token endpoints, creates a community as that user,
-# creates an event under that community, and checks that the auth user is persisted in DB.
+# verifies login and refresh-token endpoints, verifies that profile was created,
+# creates a community and event as that user, and checks that the auth user is persisted in DB.
 
 GATEWAY_URL=${GATEWAY_URL:-http://localhost:8080}
 REGISTER_PATH=${REGISTER_PATH:-/api/v1/users/register}
@@ -358,7 +369,7 @@ if [[ "$PROFILE_EMAIL" != "$EMAIL" || "$PROFILE_ID" != "$USER_ID" ]]; then
   echo "Profile response mismatch, expected id=$USER_ID email=$EMAIL, body: $PROFILE_BODY" >&2
   exit 22
 fi
-
+echo "Profile created and verified: id=$PROFILE_ID email=$PROFILE_EMAIL"
 
 TAG_REQ=$(jq -n --arg name "музыка-$USER_ID" '{name:$name}')
 TAG_RESPONSE=$(mktemp)
