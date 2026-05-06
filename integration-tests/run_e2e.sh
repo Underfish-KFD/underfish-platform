@@ -253,6 +253,12 @@ if [[ "$EMAIL_IN_TOKEN" != "$EMAIL" ]]; then
   exit 9
 fi
 
+USER_ID=$(echo "$DECODED_PAYLOAD" | jq -r '.userId // empty')
+if [[ -z "$USER_ID" ]]; then
+  echo "Numeric userId not found in access token payload: $DECODED_PAYLOAD" >&2
+  exit 20
+fi
+
 LOGIN_URL="$GATEWAY_URL$LOGIN_PATH"
 echo "Logging in user $EMAIL -> $LOGIN_URL"
 LOGIN_REQ=$(jq -n --arg email "$EMAIL" --arg password "$PASSWORD" '{email:$email, password:$password}')
@@ -313,6 +319,37 @@ TOKEN=$(echo "$REFRESH_BODY" | jq -r '.token // .accessToken // .access_token //
 if [[ -z "$TOKEN" ]]; then
   echo "Refresh response does not contain access token: $REFRESH_BODY" >&2
   exit 19
+fi
+
+
+PROFILE_RESPONSE=$(mktemp)
+PROFILE_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  PROFILE_STATUS=$(curl -v -sS -H "Authorization: Bearer $TOKEN" -D "$PROFILE_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/users/$USER_ID" -o "$PROFILE_RESPONSE")
+  set +x
+else
+  PROFILE_STATUS=$(curl -sS -H "Authorization: Bearer $TOKEN" -D "$PROFILE_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/users/$USER_ID" -o "$PROFILE_RESPONSE")
+fi
+PROFILE_BODY=$(cat "$PROFILE_RESPONSE")
+rm -f "$PROFILE_RESPONSE"
+echo "Profile HTTP $PROFILE_STATUS"
+if [[ $PROFILE_STATUS -lt 200 || $PROFILE_STATUS -ge 300 ]]; then
+  echo "Profile fetch failed, body:" >&2
+  echo "$PROFILE_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$PROFILE_HEADERS" >&2
+  dump_container_logs uf_gateway uf_profile
+  rm -f "$PROFILE_HEADERS"
+  exit 21
+fi
+rm -f "$PROFILE_HEADERS"
+
+PROFILE_EMAIL=$(echo "$PROFILE_BODY" | jq -r '.email // empty')
+PROFILE_ID=$(echo "$PROFILE_BODY" | jq -r '.user_id // .userId // empty')
+if [[ "$PROFILE_EMAIL" != "$EMAIL" || "$PROFILE_ID" != "$USER_ID" ]]; then
+  echo "Profile response mismatch, expected id=$USER_ID email=$EMAIL, body: $PROFILE_BODY" >&2
+  exit 22
 fi
 
 COMMUNITY_NAME="E2E Community $EMAIL"

@@ -26,6 +26,19 @@ class RegistrationE2ETest {
     private val gatewayBase = System.getenv("GATEWAY_URL") ?: "http://localhost:8080"
     private val authBase = System.getenv("AUTH_SERVICE_URL") ?: "http://localhost:8091"
 
+    private fun getJsonWithBearer(url: String, token: String): Pair<Int, String> {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.connectTimeout = 3000
+        conn.readTimeout = 3000
+        conn.setRequestProperty("Authorization", "Bearer $token")
+        val respCode = conn.responseCode
+        val stream = if (respCode in 200..299) conn.inputStream else conn.errorStream
+        val respBody = stream?.bufferedReader()?.readText().orEmpty()
+        conn.disconnect()
+        return Pair(respCode, respBody)
+    }
+
     private fun postJson(url: String, body: Any): Pair<Int, String> {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
@@ -66,11 +79,12 @@ class RegistrationE2ETest {
     private fun tokenField(fields: Map<String, Any>, vararg names: String): String =
         names.firstNotNullOfOrNull { fields[it]?.toString() }.orEmpty()
 
-    private fun assertJwtForEmail(token: String, email: String, publicKey: RSAPublicKey) {
+    private fun assertJwtForEmail(token: String, email: String, publicKey: RSAPublicKey): SignedJWT {
         assertTrue(token.isNotBlank())
         val signed = SignedJWT.parse(token)
         assertTrue(signed.verify(RSASSAVerifier(publicKey)), "JWT signature invalid")
         assertEquals(email, signed.jwtClaimsSet.subject)
+        return signed
     }
 
     @Test
@@ -89,8 +103,15 @@ class RegistrationE2ETest {
         assertTrue(registerRefreshToken.isNotBlank(), "Registration response must contain refresh token")
 
         val publicKey = jwksPublicKey()
-        assertJwtForEmail(registerAccessToken, email, publicKey)
+        val registeredJwt = assertJwtForEmail(registerAccessToken, email, publicKey)
         assertJwtForEmail(registerRefreshToken, email, publicKey)
+        val userId = registeredJwt.jwtClaimsSet.getLongClaim("userId")
+
+        val (profileCode, profileResp) = getJsonWithBearer("$gatewayBase/api/v1/users/$userId", registerAccessToken)
+        assertTrue(profileCode in 200..299, "Expected profile 2xx, got $profileCode, body: $profileResp")
+        val profile: Map<String, Any> = mapper.readValue(profileResp)
+        assertEquals(email, profile["email"])
+        assertEquals(userId.toString(), tokenField(profile, "user_id", "userId"))
 
         val (loginCode, loginResp) = postJson("$gatewayBase/api/v1/users/login", mapOf("email" to email, "password" to password))
         assertTrue(loginCode in 200..299, "Expected login 2xx, got $loginCode, body: $loginResp")

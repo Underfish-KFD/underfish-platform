@@ -32,6 +32,9 @@ spring:
                   uri: ${PROFILE_SERVICE_URI:http://localhost:8082}
                   predicates:
                       - Path=/api/v1/users/**
+                      - Method=GET,PUT,DELETE
+                  filters:
+                      - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/profiles/$\{segment}
 
                 # --- Community Service ---
                 - id: community-all
