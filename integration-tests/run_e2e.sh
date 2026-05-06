@@ -31,6 +31,17 @@ if [[ "$REGISTER_PATH" == "/api/auth/register" ]]; then
   REGISTER_PATH=/api/v1/users/register
 fi
 
+dump_container_logs() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  for container in "$@"; do
+    echo "--- docker logs --tail 120 $container ---" >&2
+    docker logs --tail 120 "$container" >&2 || true
+  done
+}
+
 if ! command -v jq >/dev/null 2>&1; then
   echo "Error: jq is required. Install it (brew install jq)" >&2
   exit 2
@@ -70,6 +81,7 @@ if [[ $HTTP_STATUS -lt 200 || $HTTP_STATUS -ge 300 ]]; then
   if [[ "$HTTP_STATUS" == "401" ]]; then
     echo "Hint: try REGISTER_PATH=/api/v1/users/register and check auth-service logs: docker logs --tail 200 uf_auth" >&2
   fi
+  dump_container_logs uf_gateway uf_auth
   rm -f "$HTTP_HEADERS"
   exit 3
 fi
@@ -150,6 +162,7 @@ if [[ $COMMUNITY_STATUS -lt 200 || $COMMUNITY_STATUS -ge 300 ]]; then
   echo "$COMMUNITY_BODY" >&2
   echo "Response headers:" >&2
   cat "$COMMUNITY_HEADERS" >&2
+  dump_container_logs uf_gateway uf_community
   rm -f "$COMMUNITY_HEADERS"
   exit 10
 fi
@@ -202,6 +215,7 @@ if [[ $EVENT_STATUS -lt 200 || $EVENT_STATUS -ge 300 ]]; then
   echo "$EVENT_BODY" >&2
   echo "Response headers:" >&2
   cat "$EVENT_HEADERS" >&2
+  dump_container_logs uf_gateway uf_event
   rm -f "$EVENT_HEADERS"
   exit 12
 fi
