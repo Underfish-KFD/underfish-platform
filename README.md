@@ -163,7 +163,7 @@ DEBUG=1 \
 REGISTER_PATH=/api/v1/users/register DEBUG=1 ./integration-tests/run_e2e.sh
 ```
 
-Если после регистрации community creation падает с `500`, сначала проверьте, что контейнеры пересобраны из актуальных jar. Самые частые причины: старый auth-service выдал токен без `roles` или со старым numeric `user_id`, либо старый community-service ещё не умеет принимать такой `user_id`. Пересоберите и пересоздайте сервисы:
+Если после регистрации community creation падает с `500`, сначала проверьте, что контейнеры пересобраны из актуальных jar. Самые частые причины: старый auth-service выдал токен без `roles` или со старым numeric `user_id`, либо старый community-service ещё не умеет принимать такой `user_id`. Пересоберите и пересоздайте сервисы. Вариант с `--no-deps` подходит только когда инфраструктура и соседние сервисы уже запущены; после `down -v` используйте полный цикл ниже, иначе не поднимутся PostgreSQL/profile/location зависимости:
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v21) && \

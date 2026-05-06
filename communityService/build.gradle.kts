@@ -33,6 +33,8 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
 
+    runtimeOnly(libs.postgresql)
+
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.kotlin.test.junit5)
