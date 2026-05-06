@@ -25,7 +25,7 @@ class EventServiceTest {
     @Test
     fun `createEvent should map request to response`() {
         val organizerId = UUID.randomUUID()
-        val locationId = UUID.randomUUID()
+        val locationId = "1"
         val communityId = UUID.randomUUID()
         val request =
             EventRequest(
@@ -67,7 +67,7 @@ class EventServiceTest {
                 description = "Bad status",
                 startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0),
                 endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0),
-                locationId = UUID.randomUUID(),
+                locationId = "1",
                 price = null,
                 currency = null,
                 posterUrl = null,

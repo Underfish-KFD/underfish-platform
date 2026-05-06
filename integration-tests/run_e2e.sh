@@ -135,11 +135,11 @@ check_readiness() {
 
   local failed=0
   wait_for_http gateway "$GATEWAY_URL/actuator/health" || failed=1
-  wait_for_tcp auth-service localhost 8091 || failed=1
-  wait_for_tcp profile-service localhost 8082 || failed=1
-  wait_for_tcp community-service localhost 8084 || failed=1
-  wait_for_tcp event-service localhost 8083 || failed=1
-  wait_for_tcp location-service localhost 8081 || failed=1
+  wait_for_http auth-service "http://localhost:8091/actuator/health" || failed=1
+  wait_for_http profile-service "http://localhost:8082/actuator/health" || failed=1
+  wait_for_http community-service "http://localhost:8084/actuator/health" || failed=1
+  wait_for_http event-service "http://localhost:8083/actuator/health" || failed=1
+  wait_for_http location-service "http://localhost:8081/actuator/health" || failed=1
 
   if [[ "$failed" -ne 0 ]]; then
     echo "One or more services are not ready." >&2
@@ -352,6 +352,31 @@ if [[ "$PROFILE_EMAIL" != "$EMAIL" || "$PROFILE_ID" != "$USER_ID" ]]; then
   exit 22
 fi
 
+
+TAG_REQ=$(jq -n --arg name "музыка-$USER_ID" '{name:$name}')
+TAG_RESPONSE=$(mktemp)
+TAG_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  TAG_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json; charset=utf-8' -H "Authorization: Bearer $TOKEN" -d "$TAG_REQ" -D "$TAG_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/tags" -o "$TAG_RESPONSE")
+  set +x
+else
+  TAG_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json; charset=utf-8' -H "Authorization: Bearer $TOKEN" -d "$TAG_REQ" -D "$TAG_HEADERS" -w '%{http_code}' "$GATEWAY_URL/api/v1/tags" -o "$TAG_RESPONSE")
+fi
+TAG_BODY=$(cat "$TAG_RESPONSE")
+rm -f "$TAG_RESPONSE"
+echo "Tag HTTP $TAG_STATUS"
+if [[ $TAG_STATUS -lt 200 || $TAG_STATUS -ge 300 ]]; then
+  echo "Cyrillic tag creation failed, body:" >&2
+  echo "$TAG_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$TAG_HEADERS" >&2
+  dump_container_logs uf_gateway uf_event
+  rm -f "$TAG_HEADERS"
+  exit 23
+fi
+rm -f "$TAG_HEADERS"
+
 COMMUNITY_NAME="E2E Community $EMAIL"
 COMMUNITY_REQ=$(jq -n \
   --arg name "$COMMUNITY_NAME" \
@@ -389,7 +414,7 @@ if [[ -z "$COMMUNITY_ID" ]]; then
 fi
 echo "Community created: $COMMUNITY_ID"
 
-LOCATION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+LOCATION_ID=${E2E_LOCATION_ID:-1}
 EVENT_REQ=$(jq -n \
   --arg title "E2E Event $EMAIL" \
   --arg description "Event created by integration test" \

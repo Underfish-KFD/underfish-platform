@@ -24,7 +24,7 @@ class InternalLookupClient(
         callExists(profileClient, "/internal/users/$userId/exists", "User")
     }
 
-    fun ensureLocationExists(locationId: UUID) {
+    fun ensureLocationExists(locationId: String) {
         if (!integrationProperties.validationEnabled) {
             return
         }

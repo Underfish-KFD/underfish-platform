@@ -47,7 +47,7 @@ class EventController(
         @RequestParam(required = false) start_to: LocalDateTime?,
         @RequestParam(required = false) price_min: Double?,
         @RequestParam(required = false) price_max: Double?,
-        @RequestParam(required = false) location_id: UUID?,
+        @RequestParam(required = false) location_id: String?,
         @RequestParam(required = false) tag_ids: List<UUID>?,
         @RequestParam(required = false) community_id: UUID?,
         @RequestParam(required = false) organizer_id: UUID?,

@@ -14,7 +14,7 @@ class EventResponseTest {
     fun `fromEntity maps all fields`() {
         val eventId = UUID.randomUUID()
         val organizerId = UUID.randomUUID()
-        val locationId = UUID.randomUUID()
+        val locationId = "1"
         val createdAt = LocalDateTime.of(2026, 5, 4, 10, 15)
         val updatedAt = LocalDateTime.of(2026, 5, 4, 11, 30)
 
@@ -55,7 +55,7 @@ class EventResponseTest {
     @Test
     fun `fromEntity generates fallback values when id and createdAt are missing`() {
         val organizerId = UUID.randomUUID()
-        val locationId = UUID.randomUUID()
+        val locationId = "1"
 
         val event = Event(organizerId = organizerId, title = "Fallback meetup").apply {
             description = "Fallback description"
