@@ -10,6 +10,7 @@ plugins {
 dependencies {
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.actuator)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.flyway.core)
     implementation(libs.flyway.postgresql)

@@ -13,71 +13,73 @@ spring:
 
     cloud:
         gateway:
-            routes:
-                # --- Auth Service ---
-                - id: auth-register-login
-                  uri: ${AUTH_SERVICE_URI:http://localhost:8091}
-                  predicates:
-                      - Path=/api/v1/users/register,/api/v1/users/login
-                      - Method=POST
+            server:
+                webflux:
+                    routes:
+                        # --- Auth Service ---
+                        - id: auth-register-login
+                          uri: ${AUTH_SERVICE_URI:http://localhost:8091}
+                          predicates:
+                              - Path=/api/v1/users/register,/api/v1/users/login
+                              - Method=POST
 
-                - id: auth-tokens
-                  uri: ${AUTH_SERVICE_URI:http://localhost:8091}
-                  predicates:
-                      - Path=/api/v1/tokens/**
-                      - Method=POST
+                        - id: auth-tokens
+                          uri: ${AUTH_SERVICE_URI:http://localhost:8091}
+                          predicates:
+                              - Path=/api/v1/tokens/**
+                              - Method=POST
 
-                # --- Profile Service ---
-                - id: profile-users
-                  uri: ${PROFILE_SERVICE_URI:http://localhost:8082}
-                  predicates:
-                      - Path=/api/v1/users/**
-                      - Method=GET,PUT,DELETE
-                  filters:
-                      - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/profiles/$\{segment}
+                        # --- Profile Service ---
+                        - id: profile-users
+                          uri: ${PROFILE_SERVICE_URI:http://localhost:8082}
+                          predicates:
+                              - Path=/api/v1/users/**
+                              - Method=GET,PUT,DELETE
+                          filters:
+                              - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/profiles/$\{segment}
 
-                # --- Community Service ---
-                - id: community-all
-                  uri: ${COMMUNITY_SERVICE_URI:http://localhost:8084}
-                  predicates:
-                      - Path=/api/v1/communities/**
+                        # --- Community Service ---
+                        - id: community-all
+                          uri: ${COMMUNITY_SERVICE_URI:http://localhost:8084}
+                          predicates:
+                              - Path=/api/v1/communities/**
 
-                # --- Geo Service (locationService) ---
-                - id: geo-locations
-                  uri: ${GEO_SERVICE_URI:http://localhost:8081}
-                  predicates:
-                      - Path=/api/v1/locations/**
+                        # --- Geo Service (locationService) ---
+                        - id: geo-locations
+                          uri: ${GEO_SERVICE_URI:http://localhost:8081}
+                          predicates:
+                              - Path=/api/v1/locations/**
 
-                # --- Event Service ---
-                - id: event-events
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
-                  predicates:
-                      - Path=/api/v1/events/**
+                        # --- Event Service ---
+                        - id: event-events
+                          uri: ${EVENT_SERVICE_URI:http://localhost:8083}
+                          predicates:
+                              - Path=/api/v1/events/**
 
-                - id: event-tags
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
-                  predicates:
-                      - Path=/api/v1/tags/**
+                        - id: event-tags
+                          uri: ${EVENT_SERVICE_URI:http://localhost:8083}
+                          predicates:
+                              - Path=/api/v1/tags/**
 
-                - id: event-reviews
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
-                  predicates:
-                      - Path=/api/v1/reviews/**
+                        - id: event-reviews
+                          uri: ${EVENT_SERVICE_URI:http://localhost:8083}
+                          predicates:
+                              - Path=/api/v1/reviews/**
 
-                # --- Notification Service ---
-                - id: notification-user-list
-                  uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
-                  predicates:
-                      - Path=/api/v1/users/*/notifications
+                        # --- Notification Service ---
+                        - id: notification-user-list
+                          uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
+                          predicates:
+                              - Path=/api/v1/users/*/notifications
 
-                - id: notification-actions
-                  uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
-                  predicates:
-                      - Path=/api/v1/notifications/**
-                -   id: underfish-default
-                    uri: http://underfish:8096
-                    predicates:
-                        - Path=/api/v1/**
+                        - id: notification-actions
+                          uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
+                          predicates:
+                              - Path=/api/v1/notifications/**
+                        -   id: underfish-default
+                            uri: http://underfish:8096
+                            predicates:
+                                - Path=/api/v1/**
 
 management:
     endpoints:
