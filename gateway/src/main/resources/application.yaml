@@ -21,6 +21,12 @@ spring:
                       - Path=/api/v1/users/register,/api/v1/users/login
                       - Method=POST
 
+                - id: auth-tokens
+                  uri: ${AUTH_SERVICE_URI:http://localhost:8091}
+                  predicates:
+                      - Path=/api/v1/tokens/**
+                      - Method=POST
+
                 # --- Profile Service ---
                 - id: profile-users
                   uri: ${PROFILE_SERVICE_URI:http://localhost:8092}

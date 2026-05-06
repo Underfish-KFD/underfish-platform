@@ -24,6 +24,7 @@ class SecurityConfig {
                 it.requestMatchers(
                     "/api/v1/users/register",
                     "/api/v1/users/login",
+                    "/api/v1/tokens/refresh",
                     "/.well-known/jwks.json",
                     "/actuator/**",
                 ).permitAll()

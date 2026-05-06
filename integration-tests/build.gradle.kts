@@ -1,14 +1,9 @@
-
 plugins {
-    kotlin("jvm") version "1.9.25"
+    id("buildsrc.convention.kotlin-jvm")
 }
 
 group = rootProject.group
 version = rootProject.version
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
@@ -19,7 +14,5 @@ dependencies {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
     testLogging.showStandardStreams = true
 }
-

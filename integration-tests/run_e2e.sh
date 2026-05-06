@@ -13,11 +13,13 @@ set -euo pipefail
 #   ./integration-tests/run_e2e.sh
 #
 # The script registers a user, validates that the JWT is RS256,
-# creates a community as that user, creates an event under that community,
-# and checks that the auth user is persisted in DB.
+# verifies login and refresh-token endpoints, creates a community as that user,
+# creates an event under that community, and checks that the auth user is persisted in DB.
 
 GATEWAY_URL=${GATEWAY_URL:-http://localhost:8080}
 REGISTER_PATH=${REGISTER_PATH:-/api/v1/users/register}
+LOGIN_PATH=${LOGIN_PATH:-/api/v1/users/login}
+REFRESH_PATH=${REFRESH_PATH:-/api/v1/tokens/refresh}
 EXPECT_JWT_ALG=${EXPECT_JWT_ALG:-RS256}
 DEBUG=${DEBUG:-0}
 DB_HOST=${DB_HOST:-localhost}
@@ -196,12 +198,18 @@ fi
 rm -f "$HTTP_HEADERS"
 
 TOKEN=$(echo "$BODY" | jq -r '.token // .accessToken // .access_token // empty')
+REFRESH_TOKEN=$(echo "$BODY" | jq -r '.refreshToken // .refresh_token // empty')
 if [[ -z "$TOKEN" ]]; then
   echo "No token found in response: $BODY" >&2
   exit 4
 fi
+if [[ -z "$REFRESH_TOKEN" ]]; then
+  echo "No refresh token found in response: $BODY" >&2
+  exit 4
+fi
 
 echo "Token received: ${TOKEN:0:40}..."
+echo "Refresh token received: ${REFRESH_TOKEN:0:40}..."
 
 decode_base64url() {
   local value="$1"
@@ -245,6 +253,67 @@ if [[ "$EMAIL_IN_TOKEN" != "$EMAIL" ]]; then
   exit 9
 fi
 
+LOGIN_URL="$GATEWAY_URL$LOGIN_PATH"
+echo "Logging in user $EMAIL -> $LOGIN_URL"
+LOGIN_REQ=$(jq -n --arg email "$EMAIL" --arg password "$PASSWORD" '{email:$email, password:$password}')
+LOGIN_RESPONSE=$(mktemp)
+LOGIN_HEADERS=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  LOGIN_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json' -d "$LOGIN_REQ" -D "$LOGIN_HEADERS" -w '%{http_code}' "$LOGIN_URL" -o "$LOGIN_RESPONSE")
+  set +x
+else
+  LOGIN_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$LOGIN_REQ" -D "$LOGIN_HEADERS" -w '%{http_code}' "$LOGIN_URL" -o "$LOGIN_RESPONSE")
+fi
+LOGIN_BODY=$(cat "$LOGIN_RESPONSE")
+rm -f "$LOGIN_RESPONSE"
+echo "Login HTTP $LOGIN_STATUS"
+if [[ $LOGIN_STATUS -lt 200 || $LOGIN_STATUS -ge 300 ]]; then
+  echo "Login failed, body:" >&2
+  echo "$LOGIN_BODY" >&2
+  echo "Response headers:" >&2
+  cat "$LOGIN_HEADERS" >&2
+  dump_container_logs uf_gateway uf_auth
+  rm -f "$LOGIN_HEADERS"
+  exit 15
+fi
+rm -f "$LOGIN_HEADERS"
+
+LOGIN_TOKEN=$(echo "$LOGIN_BODY" | jq -r '.token // .accessToken // .access_token // empty')
+LOGIN_REFRESH_TOKEN=$(echo "$LOGIN_BODY" | jq -r '.refreshToken // .refresh_token // empty')
+if [[ -z "$LOGIN_TOKEN" || -z "$LOGIN_REFRESH_TOKEN" ]]; then
+  echo "Login response does not contain access and refresh tokens: $LOGIN_BODY" >&2
+  exit 16
+fi
+TOKEN="$LOGIN_TOKEN"
+REFRESH_TOKEN="$LOGIN_REFRESH_TOKEN"
+echo "Login token received: ${TOKEN:0:40}..."
+
+BAD_LOGIN_REQ=$(jq -n --arg email "$EMAIL" --arg password "wrong-password" '{email:$email, password:$password}')
+BAD_LOGIN_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$BAD_LOGIN_REQ" -w '%{http_code}' "$LOGIN_URL" -o /dev/null)
+if [[ "$BAD_LOGIN_STATUS" != "401" ]]; then
+  echo "Bad login returned HTTP $BAD_LOGIN_STATUS instead of 401" >&2
+  exit 17
+fi
+
+REFRESH_URL="$GATEWAY_URL$REFRESH_PATH"
+echo "Refreshing token -> $REFRESH_URL"
+REFRESH_REQ=$(jq -n --arg refreshToken "$REFRESH_TOKEN" '{refreshToken:$refreshToken}')
+REFRESH_RESPONSE=$(mktemp)
+REFRESH_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -d "$REFRESH_REQ" -w '%{http_code}' "$REFRESH_URL" -o "$REFRESH_RESPONSE")
+REFRESH_BODY=$(cat "$REFRESH_RESPONSE")
+rm -f "$REFRESH_RESPONSE"
+if [[ $REFRESH_STATUS -lt 200 || $REFRESH_STATUS -ge 300 ]]; then
+  echo "Token refresh failed, body:" >&2
+  echo "$REFRESH_BODY" >&2
+  dump_container_logs uf_gateway uf_auth
+  exit 18
+fi
+TOKEN=$(echo "$REFRESH_BODY" | jq -r '.token // .accessToken // .access_token // empty')
+if [[ -z "$TOKEN" ]]; then
+  echo "Refresh response does not contain access token: $REFRESH_BODY" >&2
+  exit 19
+fi
 
 COMMUNITY_NAME="E2E Community $EMAIL"
 COMMUNITY_REQ=$(jq -n \
