@@ -46,6 +46,7 @@ services:
     # ===========================================================================
     pg-event:
         image: postgis/postgis:16-3.4-alpine
+        platform: ${POSTGIS_PLATFORM:-linux/amd64}
         container_name: uf_pg_event
         restart: unless-stopped
         environment:
@@ -69,6 +70,7 @@ services:
     # ===========================================================================
     pg-geo:
         image: postgis/postgis:16-3.4-alpine
+        platform: ${POSTGIS_PLATFORM:-linux/amd64}
         container_name: uf_pg_geo
         restart: unless-stopped
         environment:

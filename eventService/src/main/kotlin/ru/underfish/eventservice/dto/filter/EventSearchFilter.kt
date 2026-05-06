@@ -11,7 +11,7 @@ data class EventSearchFilter(
     val startTo: LocalDateTime? = null,
     val priceMin: Double? = null,
     val priceMax: Double? = null,
-    val locationId: UUID? = null,
+    val locationId: String? = null,
     val tagIds: List<UUID> = emptyList(),
     val communityId: UUID? = null,
     val organizerId: UUID? = null,

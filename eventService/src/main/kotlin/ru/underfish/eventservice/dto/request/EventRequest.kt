@@ -15,7 +15,7 @@ data class EventRequest(
     @field:NotNull
     val endDatetime: LocalDateTime,
     @field:NotNull
-    val locationId: UUID,
+    val locationId: String,
     val price: Double? = null,
     val currency: String? = null,
     val posterUrl: String? = null,

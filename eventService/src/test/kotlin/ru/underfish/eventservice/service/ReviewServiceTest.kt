@@ -32,7 +32,7 @@ class ReviewServiceTest {
             description = "Event description"
             startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0)
             endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0)
-            locationId = UUID.randomUUID()
+            locationId = "1"
             eventStatus = EventStatus.PUBLISHED
         }
         val request = ReviewRequest(rating = 5, comment = "Great event")

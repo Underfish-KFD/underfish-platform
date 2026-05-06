@@ -10,7 +10,7 @@ data class EventResponse(
     val description: String,
     val startDatetime: LocalDateTime,
     val endDatetime: LocalDateTime?,
-    val locationId: UUID,
+    val locationId: String,
     val price: Double,
     val currency: String,
     val posterUrl: String?,

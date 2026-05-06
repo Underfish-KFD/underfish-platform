@@ -1,6 +1,6 @@
 package ru.underfish.eventservice.controller
 
-import jakarta.validation.Valid
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,19 +14,24 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import ru.underfish.eventservice.dto.request.TagRequest
 import ru.underfish.eventservice.dto.response.TagResponse
+import ru.underfish.eventservice.exception.BadRequestException
 import ru.underfish.eventservice.service.TagService
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/tags")
 class TagController(
     private val tagService: TagService,
+    private val objectMapper: ObjectMapper,
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createTag(
-        @Valid @RequestBody request: TagRequest,
-    ): TagResponse = tagService.createTag(request)
+        @RequestBody body: ByteArray,
+    ): TagResponse = tagService.createTag(parseTagRequest(body))
 
     @GetMapping
     fun getTags(
@@ -42,8 +47,8 @@ class TagController(
     @PutMapping("/{tag_id}")
     fun updateTag(
         @PathVariable("tag_id") tagId: UUID,
-        @Valid @RequestBody request: TagRequest,
-    ): TagResponse = tagService.updateTag(tagId, request)
+        @RequestBody body: ByteArray,
+    ): TagResponse = tagService.updateTag(tagId, parseTagRequest(body))
 
     @DeleteMapping("/{tag_id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -52,5 +57,21 @@ class TagController(
     ) {
         tagService.deleteTag(tagId)
     }
-}
 
+    private fun parseTagRequest(body: ByteArray): TagRequest =
+        objectMapper.readValue(body.decodeJsonBody(), TagRequest::class.java)
+
+    private fun ByteArray.decodeJsonBody(): String =
+        runCatching { StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(this)).toString() }
+            .recoverCatching { error ->
+                if (error !is CharacterCodingException) {
+                    throw error
+                }
+                String(this, WINDOWS_1251)
+            }
+            .getOrElse { throw BadRequestException("Invalid request body encoding") }
+
+    companion object {
+        private val WINDOWS_1251: Charset = Charset.forName("windows-1251")
+    }
+}

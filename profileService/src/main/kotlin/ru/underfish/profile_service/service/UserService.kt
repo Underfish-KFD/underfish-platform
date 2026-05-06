@@ -3,6 +3,7 @@ package ru.underfish.profile_service.service
 
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import ru.underfish.profile_service.database.dao.UserRepository
 import ru.underfish.profile_service.database.entities.enums.Role
 import ru.underfish.profile_service.dto.request.UserLoginRequest
@@ -19,9 +20,26 @@ class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
+    @Transactional
     fun registerUser(request: UserRegistrationRequest): UserResponse {
         if (userRepository.existsByEmail(request.email)) {
             throw BadRequestException("User with this email already exists")
+        }
+
+        request.userId?.let { userId ->
+            if (userRepository.existsById(userId)) {
+                throw BadRequestException("User with this id already exists")
+            }
+            userRepository.insertUserWithId(
+                id = userId,
+                email = request.email,
+                passwordHash = passwordEncoder.encode(request.password),
+                phone = request.phone,
+                firstName = request.firstName,
+                lastName = request.lastName,
+            )
+            userRepository.syncUserIdSequence()
+            return getUserById(userId)
         }
 
         val user =

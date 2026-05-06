@@ -33,7 +33,7 @@ class Event(
     var endDatetime: LocalDateTime? = null
 
     @Column(name = "location_id", nullable = false)
-    var locationId: UUID = UUID.randomUUID()
+    var locationId: String = ""
 
     @Column(name = "community_id")
     var communityId: UUID? = null
