@@ -5,6 +5,8 @@ import ru.underfish.app.database.entities.EventAttendance
 interface EventAttendanceRepository : AbstractRepository<EventAttendance> {
     fun findByEventId(eventId: Long): List<EventAttendance>
 
+    fun findByUserId(userId: Long): List<EventAttendance>
+
     fun findByEventIdAndUserId(
         eventId: Long,
         userId: Long,

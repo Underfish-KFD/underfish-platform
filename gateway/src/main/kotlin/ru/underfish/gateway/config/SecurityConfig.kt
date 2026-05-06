@@ -23,7 +23,11 @@ class SecurityConfig {
                 it.pathMatchers(
                     HttpMethod.POST,
                     "/api/v1/users/register",
+                    "/api/v1/users/register/",
+                    "/api/v1/users/register/**",
                     "/api/v1/users/login",
+                    "/api/v1/users/login/",
+                    "/api/v1/users/login/**",
                     "/api/v1/tokens/refresh",
                 ).permitAll()
                 it.pathMatchers("/actuator/health").permitAll()
