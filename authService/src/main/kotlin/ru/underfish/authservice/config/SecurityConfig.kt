@@ -27,6 +27,7 @@ class SecurityConfig {
                     "/api/v1/tokens/refresh",
                     "/.well-known/jwks.json",
                     "/actuator/**",
+                    "/error",
                 ).permitAll()
                 it.anyRequest().authenticated()
             }
