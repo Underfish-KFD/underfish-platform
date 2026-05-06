@@ -29,35 +29,35 @@ spring:
 
                 # --- Profile Service ---
                 - id: profile-users
-                  uri: ${PROFILE_SERVICE_URI:http://localhost:8092}
+                  uri: ${PROFILE_SERVICE_URI:http://localhost:8082}
                   predicates:
                       - Path=/api/v1/users/**
 
                 # --- Community Service ---
                 - id: community-all
-                  uri: ${COMMUNITY_SERVICE_URI:http://localhost:8093}
+                  uri: ${COMMUNITY_SERVICE_URI:http://localhost:8084}
                   predicates:
                       - Path=/api/v1/communities/**
 
                 # --- Geo Service (locationService) ---
                 - id: geo-locations
-                  uri: ${GEO_SERVICE_URI:http://localhost:8082}
+                  uri: ${GEO_SERVICE_URI:http://localhost:8081}
                   predicates:
                       - Path=/api/v1/locations/**
 
                 # --- Event Service ---
                 - id: event-events
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
                   predicates:
                       - Path=/api/v1/events/**
 
                 - id: event-tags
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
                   predicates:
                       - Path=/api/v1/tags/**
 
                 - id: event-reviews
-                  uri: ${EVENT_SERVICE_URI:http://localhost:8094}
+                  uri: ${EVENT_SERVICE_URI:http://localhost:8083}
                   predicates:
                       - Path=/api/v1/reviews/**
 
