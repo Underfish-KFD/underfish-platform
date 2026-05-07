@@ -499,6 +499,49 @@ if [[ "$EVENT_COMMUNITY_ID" != "$COMMUNITY_ID" ]]; then
 fi
 echo "Event created: $EVENT_ID for community: $COMMUNITY_ID"
 
+ATTEND_REQ=$(jq -n '{status:"confirmed"}')
+ATTEND_RESPONSE=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  ATTEND_STATUS=$(curl -v -sS -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d "$ATTEND_REQ" -w '%{http_code}' "$GATEWAY_URL/api/v1/events/$EVENT_ID/attendance" -o "$ATTEND_RESPONSE")
+  set +x
+else
+  ATTEND_STATUS=$(curl -sS -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d "$ATTEND_REQ" -w '%{http_code}' "$GATEWAY_URL/api/v1/events/$EVENT_ID/attendance" -o "$ATTEND_RESPONSE")
+fi
+ATTEND_BODY=$(cat "$ATTEND_RESPONSE")
+rm -f "$ATTEND_RESPONSE"
+echo "Attend HTTP $ATTEND_STATUS"
+if [[ $ATTEND_STATUS -lt 200 || $ATTEND_STATUS -ge 300 ]]; then
+  echo "Attendance creation failed, body:" >&2
+  echo "$ATTEND_BODY" >&2
+  dump_container_logs uf_gateway uf_event
+  exit 24
+fi
+
+MY_ATTEND_RESPONSE=$(mktemp)
+if [[ "$DEBUG" == "1" ]]; then
+  set -x
+  MY_ATTEND_STATUS=$(curl -v -sS -H "Authorization: Bearer $TOKEN" -w '%{http_code}' "$GATEWAY_URL/api/v1/events/me/attendence" -o "$MY_ATTEND_RESPONSE")
+  set +x
+else
+  MY_ATTEND_STATUS=$(curl -sS -H "Authorization: Bearer $TOKEN" -w '%{http_code}' "$GATEWAY_URL/api/v1/events/me/attendence" -o "$MY_ATTEND_RESPONSE")
+fi
+MY_ATTEND_BODY=$(cat "$MY_ATTEND_RESPONSE")
+rm -f "$MY_ATTEND_RESPONSE"
+echo "My attendence HTTP $MY_ATTEND_STATUS"
+if [[ $MY_ATTEND_STATUS -lt 200 || $MY_ATTEND_STATUS -ge 300 ]]; then
+  echo "Get my attendence failed, body:" >&2
+  echo "$MY_ATTEND_BODY" >&2
+  dump_container_logs uf_gateway uf_event
+  exit 25
+fi
+
+if ! echo "$MY_ATTEND_BODY" | jq -e --arg eventId "$EVENT_ID" 'index($eventId) != null' >/dev/null; then
+  echo "My attendence list does not contain event id $EVENT_ID, body: $MY_ATTEND_BODY" >&2
+  exit 26
+fi
+echo "Attendence list includes event: $EVENT_ID"
+
 echo "Waiting 2s for DB entry..."
 sleep 2
 
