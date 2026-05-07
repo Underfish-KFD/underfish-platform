@@ -66,6 +66,12 @@ spring:
                           predicates:
                               - Path=/api/v1/reviews/**
 
+                        # --- File Storage Service ---
+                        - id: file-storage
+                          uri: ${FILE_SERVICE_URI:http://localhost:8085}
+                          predicates:
+                              - Path=/api/v1/files/**
+
                         # --- Notification Service ---
                         - id: notification-user-list
                           uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8095}
@@ -77,11 +83,6 @@ spring:
                           predicates:
                               - Path=/api/v1/notifications/**
 
-                        # --- File Storage Service ---
-                        - id: file-storage
-                          uri: ${FILE_SERVICE_URI:http://localhost:8085}
-                          predicates:
-                              - Path=/api/v1/files/**
                         -   id: underfish-default
                             uri: http://underfish:8096
                             predicates:

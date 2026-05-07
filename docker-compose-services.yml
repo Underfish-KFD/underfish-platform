@@ -13,6 +13,7 @@ services:
       COMMUNITY_SERVICE_URI: http://community-service:8084
       GEO_SERVICE_URI: http://location-service:8081
       EVENT_SERVICE_URI: http://event-service:8083
+      FILE_SERVICE_URI: http://file-storage-service:8085
       NOTIFICATION_SERVICE_URI: http://notification-service:8095
       JWT_JWKS_URI: http://auth-service:8091/.well-known/jwks.json
       GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN:-dev-internal-token}
@@ -28,6 +29,8 @@ services:
       event-service:
         condition: service_started
       location-service:
+        condition: service_started
+      file-storage-service:
         condition: service_started
     networks:
       - underfish_net

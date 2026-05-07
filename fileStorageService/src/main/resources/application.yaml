@@ -9,7 +9,7 @@ spring:
     open-in-view: false
 
 server:
-  port: ${SERVER_PORT:8083}
+  port: ${SERVER_PORT:8085}
 
 management:
   endpoints:
