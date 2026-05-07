@@ -141,6 +141,8 @@ cd /Users/alex/Projects/underfish/underfish-platform && \
 DEBUG=1 ./integration-tests/run_e2e.sh
 ```
 
+> Важно: для этого E2E не должен быть запущен legacy-монолит `uf_underfish` (если он запущен, остановите `docker stop uf_underfish`).
+
 Явный вариант этой же E2E-команды:
 
 ```bash
