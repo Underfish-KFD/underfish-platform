@@ -98,6 +98,15 @@ check_required_containers() {
     dump_container_logs "${failed_containers[@]}"
     exit 2
   fi
+
+  # Legacy monolith must not be part of microservices E2E stack.
+  local legacy_state
+  legacy_state=$(docker inspect -f '{{.State.Status}}' uf_underfish 2>/dev/null || true)
+  if [[ "$legacy_state" == "running" ]]; then
+    echo "Legacy container uf_underfish is running, but it must be disabled for microservices E2E." >&2
+    echo "Stop it before running tests: docker stop uf_underfish" >&2
+    exit 2
+  fi
 }
 
 wait_for_http() {
@@ -511,4 +520,3 @@ else
   echo "User not found in DB (count=$COUNT)" >&2
   exit 16
 fi
-

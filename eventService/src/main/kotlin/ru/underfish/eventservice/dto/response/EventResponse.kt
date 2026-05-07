@@ -26,7 +26,7 @@ data class EventResponse(
         fun fromEntity(event: Event): EventResponse =
             EventResponse(
                 eventId = event.id ?: UUID.randomUUID(),
-                organizerId = event.userId,
+                organizerId = event.organizerId,
                 title = event.title,
                 description = event.description,
                 startDatetime = event.startDatetime,
