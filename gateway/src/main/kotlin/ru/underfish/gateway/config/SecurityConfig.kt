@@ -27,6 +27,7 @@ class SecurityConfig {
                     "/api/v1/tokens/refresh",
                 ).permitAll()
                 it.pathMatchers("/actuator/health").permitAll()
+                it.pathMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
                 it.pathMatchers("/api/v1/**").authenticated()
                 it.anyExchange().denyAll()
             }

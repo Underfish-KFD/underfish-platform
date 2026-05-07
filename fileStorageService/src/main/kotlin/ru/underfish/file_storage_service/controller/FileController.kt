@@ -1,7 +1,9 @@
 package ru.underfish.file_storage_service.controller
 
 
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -37,11 +39,16 @@ class FileController(
     }
 
     @GetMapping("/{id}")
-    fun getById(
+    fun download(
         @PathVariable id: UUID,
-    ): StoredFileResponse =
-        fileRepository
+        response: HttpServletResponse,
+    ) {
+        val stored = fileRepository
             .findById(id)
             .orElseThrow { FileNotFoundException("Файл $id не найден") }
-            .toResponse()
+        response.contentType = stored.contentType
+        response.setHeader("Content-Disposition", "inline; filename=\"${stored.originalName}\"")
+        response.setContentLengthLong(stored.sizeBytes)
+        minioService.streamFile(stored.objectKey, response.outputStream)
+    }
 }
