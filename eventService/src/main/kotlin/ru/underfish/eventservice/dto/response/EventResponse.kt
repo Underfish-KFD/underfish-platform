@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class EventResponse(
     val eventId: UUID,
+    val organizerId: UUID,
     val title: String,
     val description: String,
     val startDatetime: LocalDateTime,
@@ -25,6 +26,7 @@ data class EventResponse(
         fun fromEntity(event: Event): EventResponse =
             EventResponse(
                 eventId = event.id ?: UUID.randomUUID(),
+                organizerId = event.userId,
                 title = event.title,
                 description = event.description,
                 startDatetime = event.startDatetime,
@@ -42,4 +44,3 @@ data class EventResponse(
             )
     }
 }
-

@@ -730,6 +730,39 @@ paths:
                 '204': { description: Посещаемость удалена }
                 '404': { $ref: '#/components/responses/NotFound' }
 
+    /api/v1/events/{user_id}/attendence:
+        get:
+            tags: [Events]
+            summary: Получить ID событий, на которые зарегистрирован пользователь
+            operationId: getUserAttendence
+            security: [{ bearerAuth: [] }]
+            parameters:
+                - $ref: '#/components/parameters/NumericUserId'
+            responses:
+                '200':
+                    description: Список event_id
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EventIdListResponse'
+                '401': { $ref: '#/components/responses/Unauthorized' }
+                '403': { $ref: '#/components/responses/Forbidden' }
+
+    /api/v1/events/me/attendence:
+        get:
+            tags: [Events]
+            summary: Получить ID событий текущего пользователя
+            operationId: getMyAttendence
+            security: [{ bearerAuth: [] }]
+            responses:
+                '200':
+                    description: Список event_id текущего пользователя
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EventIdListResponse'
+                '401': { $ref: '#/components/responses/Unauthorized' }
+
     /api/v1/events/{event_id}/reviews:
         parameters:
             - $ref: '#/components/parameters/EventId'
@@ -1308,9 +1341,10 @@ components:
 
         EventResponse:
             type: object
-            required: [event_id, title, description, start_datetime, location_id, price, currency, status, created_at, updated_at, max_participants, is_online]
+            required: [event_id, organizer_id, title, description, start_datetime, location_id, price, currency, status, created_at, updated_at, max_participants, is_online]
             properties:
                 event_id: { type: string, format: uuid }
+                organizer_id: { type: string, format: uuid }
                 title: { type: string }
                 description: { type: string }
                 start_datetime: { type: string, format: date-time }
@@ -1367,6 +1401,10 @@ components:
                 event_id: { type: string, format: uuid }
                 status: { type: string, enum: [PENDING, CONFIRMED, CANCELLED, ATTENDED] }
                 created_at: { type: string, format: date-time }
+
+        EventIdListResponse:
+            type: array
+            items: { type: integer, format: int64 }
 
         ReviewRequest:
             type: object
