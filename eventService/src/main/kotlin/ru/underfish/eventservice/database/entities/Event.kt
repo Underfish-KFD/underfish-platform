@@ -1,6 +1,8 @@
 package ru.underfish.eventservice.database.entities
 
+import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -33,7 +35,7 @@ class Event(
     var endDatetime: LocalDateTime? = null
 
     @Column(name = "location_id", nullable = false)
-    var locationId: UUID = UUID.randomUUID()
+    var locationId: String = ""
 
     @Column(name = "community_id")
     var communityId: UUID? = null
@@ -59,6 +61,11 @@ class Event(
 
     @Column(name = "is_online", nullable = false)
     var isOnline: Boolean = false
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "event_photos", joinColumns = [JoinColumn(name = "event_id")])
+    @Column(name = "photo_url", columnDefinition = "TEXT")
+    var photoUrls: MutableList<String> = mutableListOf()
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

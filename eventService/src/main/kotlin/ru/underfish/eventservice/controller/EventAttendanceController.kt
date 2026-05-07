@@ -31,7 +31,7 @@ class EventAttendanceController(
         @PathVariable("event_id") eventId: UUID,
         @Valid @RequestBody request: EventAttendanceRequest,
     ): EventAttendanceResponse {
-        val userId = UUID.fromString(currentUserProvider.getRequired().userId)
+        val userId = currentUserProvider.getRequiredUserUuid()
         return eventAttendanceService.addAttendance(eventId, userId, request.status)
     }
 

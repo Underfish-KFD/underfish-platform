@@ -45,10 +45,12 @@ class EventService(
                 price = request.price?.let { BigDecimal.valueOf(it) } ?: BigDecimal.ZERO
                 currency = request.currency ?: "RUB"
                 posterUrl = request.posterUrl
+                communityId = request.communityId
                 eventStatus = parseEventStatus(request.status)
                 updatedAt = LocalDateTime.now()
                 maxParticipants = request.maxParticipants ?: 0
                 isOnline = request.isOnline ?: false
+                photoUrls = request.photoUrls?.toMutableList() ?: mutableListOf()
             }
 
         return EventResponse.fromEntity(eventRepository.save(event))
@@ -106,6 +108,7 @@ class EventService(
         event.maxParticipants = request.maxParticipants ?: 0
         event.isOnline = request.isOnline ?: false
         event.updatedAt = LocalDateTime.now()
+        request.photoUrls?.let { event.photoUrls = it.toMutableList() }
 
         return EventResponse.fromEntity(eventRepository.save(event))
     }
@@ -127,6 +130,7 @@ class EventService(
         return EventTagResponse(eventId = eventId, tagId = request.tagId)
     }
 
+    @Transactional(readOnly = true)
     fun getEventTags(eventId: UUID): List<EventTagResponse> {
         val event = findEvent(eventId)
         return event.tags.map { tag -> EventTagResponse(eventId = eventId, tagId = tag.id ?: UUID.randomUUID()) }

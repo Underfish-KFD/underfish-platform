@@ -26,7 +26,7 @@ class ReviewController(
         @PathVariable("event_id") eventId: UUID,
         @Valid @RequestBody request: ReviewRequest,
     ): ReviewResponse {
-        val userId = UUID.fromString(currentUserProvider.getRequired().userId)
+        val userId = currentUserProvider.getRequiredUserUuid()
         return reviewService.createReview(eventId, userId, request)
     }
 

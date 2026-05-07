@@ -24,10 +24,10 @@ include(":utils")
 
 rootProject.name = "underfish-platform"
 include("locationService")
-include(":profile-service")
-include(":file-storage-service")
-
-include(":abstract-service")
+include(":profileService")
+include(":fileStorageService")
+include(":authService")
 include(":gateway")
 include(":communityService")
 include(":eventService")
+include(":integration-tests")

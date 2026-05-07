@@ -16,7 +16,7 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
 
   jpa:
@@ -26,3 +26,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

@@ -5,8 +5,10 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import ru.underfish.communityservice.database.dao.CommunityMemberRepository
 import ru.underfish.communityservice.database.dao.CommunityRepository
 import ru.underfish.communityservice.database.entities.Community
+import ru.underfish.communityservice.database.entities.CommunityMember
 import ru.underfish.communityservice.database.entities.enums.CommunityStatus
 import ru.underfish.communityservice.dto.request.CommunityRequest
 import ru.underfish.communityservice.dto.response.CommunityPageResponse
@@ -38,6 +40,7 @@ import java.util.UUID
 @Service
 class CommunityService(
     private val communityRepository: CommunityRepository,
+    private val communityMemberRepository: CommunityMemberRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val communityOrganizerService: ru.underfish.communityservice.service.CommunityOrganizerService,
 ) {
@@ -53,8 +56,7 @@ class CommunityService(
      * - Пользователь создал сообщество и он уже организатор
      */
     fun createCommunity(request: CommunityRequest): CommunityResponse {
-        val currentUser = currentUserProvider.getRequired()
-        val organizerId = UUID.fromString(currentUser.userId)
+        val organizerId = currentUserProvider.getRequiredUserUuid()
 
         val community =
             Community().apply {
@@ -68,12 +70,23 @@ class CommunityService(
 
         val saved = communityRepository.save(community)
 
-        // create organizer membership (current user) as ORGANIZER
+        // add organizer to community_organizers table
         try {
             communityOrganizerService.addOrganizer(saved.communityId, organizerId)
         } catch (e: Exception) {
-            // Log failure but do not fail community creation
             logger.warn("Failed to create organizer record for community=${saved.communityId}", e)
+        }
+
+        // add organizer to community_members so they are counted and visible in member list
+        val existingMember = communityMemberRepository.findByCommunityIdAndUserId(saved.communityId, organizerId)
+        if (existingMember == null) {
+            communityMemberRepository.save(
+                CommunityMember().apply {
+                    communityId = saved.communityId
+                    userId = organizerId
+                    role = "ORGANIZER"
+                },
+            )
         }
 
         return mapToResponse(saved)
@@ -207,8 +220,7 @@ class CommunityService(
             communityRepository.findByCommunityId(communityId)
                 ?: throw NotFoundException("Community not found: $communityId")
 
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         // Проверка прав доступа
         val isOrganizer = community.organizerId == currentUserId
@@ -241,8 +253,7 @@ class CommunityService(
             communityRepository.findByCommunityId(communityId)
                 ?: throw NotFoundException("Community not found: $communityId")
 
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         val isOrganizer = community.organizerId == currentUserId
         val isAdmin = currentUserProvider.isAdmin()

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController
 import ru.underfish.communityservice.dto.request.CommunityRequest
 import ru.underfish.communityservice.dto.response.CommunityPageResponse
 import ru.underfish.communityservice.dto.response.CommunityResponse
+import ru.underfish.communityservice.security.CurrentUserProvider
+import ru.underfish.communityservice.service.CommunityMemberService
 import ru.underfish.communityservice.service.CommunityService
 import java.util.UUID
 
@@ -22,6 +24,8 @@ import java.util.UUID
 @RequestMapping("/api/v1/communities")
 class CommunityController(
     private val communityService: CommunityService,
+    private val communityMemberService: CommunityMemberService,
+    private val currentUserProvider: CurrentUserProvider,
 ) {
     /**
      * POST /api/v1/communities
@@ -71,6 +75,21 @@ class CommunityController(
                 sort = convertSortField(sort),
                 sortDirection = sortDirection,
             )
+        return ResponseEntity.ok(communities)
+    }
+
+    /**
+     * GET /api/v1/communities/my
+     * Получить сообщества, в которых состоит текущий пользователь
+     */
+    @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    fun getMyCommunities(): ResponseEntity<List<CommunityResponse>> {
+        val userId = currentUserProvider.getRequiredUserUuid()
+        val communityIds = communityMemberService.getCommunitiesForUser(userId)
+        val communities = communityIds.mapNotNull { id ->
+            runCatching { communityService.getCommunity(id) }.getOrNull()
+        }
         return ResponseEntity.ok(communities)
     }
 

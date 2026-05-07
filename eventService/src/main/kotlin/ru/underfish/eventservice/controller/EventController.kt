@@ -19,6 +19,7 @@ import ru.underfish.eventservice.dto.response.EventPageResponse
 import ru.underfish.eventservice.dto.response.EventResponse
 import ru.underfish.eventservice.dto.response.EventTagResponse
 import ru.underfish.eventservice.security.CurrentUserProvider
+import ru.underfish.eventservice.service.EventAttendanceService
 import ru.underfish.eventservice.service.EventService
 import java.time.LocalDateTime
 import java.util.UUID
@@ -27,6 +28,7 @@ import java.util.UUID
 @RequestMapping("/api/v1/events")
 class EventController(
     private val eventService: EventService,
+    private val eventAttendanceService: EventAttendanceService,
     private val currentUserProvider: CurrentUserProvider,
 ) {
     @PostMapping
@@ -34,7 +36,7 @@ class EventController(
     fun createEvent(
         @Valid @RequestBody request: EventRequest,
     ): EventResponse {
-        val userId = UUID.fromString(currentUserProvider.getRequired().userId)
+        val userId = currentUserProvider.getRequiredUserUuid()
         return eventService.createEvent(request, userId)
     }
 
@@ -47,7 +49,7 @@ class EventController(
         @RequestParam(required = false) start_to: LocalDateTime?,
         @RequestParam(required = false) price_min: Double?,
         @RequestParam(required = false) price_max: Double?,
-        @RequestParam(required = false) location_id: UUID?,
+        @RequestParam(required = false) location_id: String?,
         @RequestParam(required = false) tag_ids: List<UUID>?,
         @RequestParam(required = false) community_id: UUID?,
         @RequestParam(required = false) organizer_id: UUID?,
@@ -76,6 +78,15 @@ class EventController(
             sortField = sort,
             sortDirection = sort_direction,
         )
+
+    @GetMapping("/attended")
+    fun getAttendedEvents(): List<EventResponse> {
+        val userId = currentUserProvider.getRequiredUserUuid()
+        val ids = eventAttendanceService.getAttendedEventIdsForUser(userId, userId, false)
+        return ids.mapNotNull { id ->
+            runCatching { eventService.getEventById(id) }.getOrNull()
+        }
+    }
 
     @GetMapping("/{event_id}")
     fun getEventById(

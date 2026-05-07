@@ -25,7 +25,8 @@ class EventServiceTest {
     @Test
     fun `createEvent should map request to response`() {
         val organizerId = UUID.randomUUID()
-        val locationId = UUID.randomUUID()
+        val locationId = "1"
+        val communityId = UUID.randomUUID()
         val request =
             EventRequest(
                 title = "Kotlin meetup",
@@ -36,6 +37,7 @@ class EventServiceTest {
                 price = 150.0,
                 currency = "RUB",
                 posterUrl = "https://example.com/poster.png",
+                communityId = communityId,
                 status = "PUBLISHED",
                 maxParticipants = 80,
                 isOnline = true,
@@ -48,6 +50,7 @@ class EventServiceTest {
         assertEquals("Kotlin meetup", response.title)
         assertEquals("A meetup about Kotlin", response.description)
         assertEquals(locationId, response.locationId)
+        assertEquals(communityId, response.communityId)
         assertEquals(150.0, response.price)
         assertEquals("RUB", response.currency)
         assertEquals("PUBLISHED", response.status)
@@ -64,7 +67,7 @@ class EventServiceTest {
                 description = "Bad status",
                 startDatetime = LocalDateTime.of(2026, 5, 20, 18, 0),
                 endDatetime = LocalDateTime.of(2026, 5, 20, 20, 0),
-                locationId = UUID.randomUUID(),
+                locationId = "1",
                 price = null,
                 currency = null,
                 posterUrl = null,

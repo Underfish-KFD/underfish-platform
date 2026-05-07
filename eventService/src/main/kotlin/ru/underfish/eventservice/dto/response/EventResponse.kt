@@ -6,24 +6,28 @@ import java.util.UUID
 
 data class EventResponse(
     val eventId: UUID,
+    val organizerId: UUID,
     val title: String,
     val description: String,
     val startDatetime: LocalDateTime,
     val endDatetime: LocalDateTime?,
-    val locationId: UUID,
+    val locationId: String,
     val price: Double,
     val currency: String,
     val posterUrl: String?,
+    val communityId: UUID?,
     val status: String,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val maxParticipants: Int,
     val isOnline: Boolean,
+    val photoUrls: List<String>,
 ) {
     companion object {
         fun fromEntity(event: Event): EventResponse =
             EventResponse(
                 eventId = event.id ?: UUID.randomUUID(),
+                organizerId = event.organizerId,
                 title = event.title,
                 description = event.description,
                 startDatetime = event.startDatetime,
@@ -32,12 +36,13 @@ data class EventResponse(
                 price = event.price.toDouble(),
                 currency = event.currency,
                 posterUrl = event.posterUrl,
+                communityId = event.communityId,
                 status = event.eventStatus.name,
                 createdAt = event.createdAt ?: LocalDateTime.now(),
                 updatedAt = event.updatedAt,
                 maxParticipants = event.maxParticipants,
                 isOnline = event.isOnline,
+                photoUrls = event.photoUrls.toList(),
             )
     }
 }
-

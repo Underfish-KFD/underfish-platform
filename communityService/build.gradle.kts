@@ -33,6 +33,8 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
 
+    runtimeOnly(libs.postgresql)
+
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.kotlin.test.junit5)
@@ -42,9 +44,10 @@ dependencies {
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    enabled = false
+    enabled = true
 }
 
 tasks.named<Jar>("jar") {
-    enabled = true
+    enabled = false
 }
+

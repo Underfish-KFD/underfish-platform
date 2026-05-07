@@ -20,8 +20,14 @@ class SecurityConfig {
             .httpBasic { it.disable() }
             .formLogin { it.disable() }
             .authorizeExchange {
-                it.pathMatchers(HttpMethod.POST, "/api/v1/users/register", "/api/v1/users/login").permitAll()
+                it.pathMatchers(
+                    HttpMethod.POST,
+                    "/api/v1/users/register",
+                    "/api/v1/users/login",
+                    "/api/v1/tokens/refresh",
+                ).permitAll()
                 it.pathMatchers("/actuator/health").permitAll()
+                it.pathMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
                 it.pathMatchers("/api/v1/**").authenticated()
                 it.anyExchange().denyAll()
             }

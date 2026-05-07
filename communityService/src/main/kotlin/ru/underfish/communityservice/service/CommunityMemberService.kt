@@ -24,8 +24,7 @@ class CommunityMemberService(
         communityId: UUID,
         request: CommunityMemberRequest,
     ): CommunityMemberResponse {
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         // Allow self-add, admin, or organizer to add arbitrary users
         val isAdmin = currentUserProvider.isAdmin()
@@ -61,6 +60,10 @@ class CommunityMemberService(
         return communityMemberRepository.findByCommunityId(communityId).map { mapToResponse(it) }
     }
 
+    fun getCommunitiesForUser(userId: UUID): List<UUID> {
+        return communityMemberRepository.findByUserId(userId).map { it.communityId }
+    }
+
     // Organizer management is handled in CommunityOrganizerService (separate table)
 
     private fun isOrganizer(
@@ -80,8 +83,7 @@ class CommunityMemberService(
         communityId: UUID,
         userId: UUID,
     ) {
-        val currentUser = currentUserProvider.getRequired()
-        val currentUserId = UUID.fromString(currentUser.userId)
+        val currentUserId = currentUserProvider.getRequiredUserUuid()
 
         // Allow self removal or organizer/admin to remove others
         if (userId != currentUserId && !currentUserProvider.isAdmin() && !isOrganizer(communityId, currentUserId)) {
