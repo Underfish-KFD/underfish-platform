@@ -60,6 +60,10 @@ class CommunityMemberService(
         return communityMemberRepository.findByCommunityId(communityId).map { mapToResponse(it) }
     }
 
+    fun getCommunitiesForUser(userId: UUID): List<UUID> {
+        return communityMemberRepository.findByUserId(userId).map { it.communityId }
+    }
+
     // Organizer management is handled in CommunityOrganizerService (separate table)
 
     private fun isOrganizer(

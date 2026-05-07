@@ -21,6 +21,7 @@ data class EventResponse(
     val updatedAt: LocalDateTime,
     val maxParticipants: Int,
     val isOnline: Boolean,
+    val photoUrls: List<String>,
 ) {
     companion object {
         fun fromEntity(event: Event): EventResponse =
@@ -41,6 +42,7 @@ data class EventResponse(
                 updatedAt = event.updatedAt,
                 maxParticipants = event.maxParticipants,
                 isOnline = event.isOnline,
+                photoUrls = event.photoUrls.toList(),
             )
     }
 }

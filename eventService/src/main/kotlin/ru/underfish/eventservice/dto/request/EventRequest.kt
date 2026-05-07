@@ -24,5 +24,6 @@ data class EventRequest(
     val status: String,
     val maxParticipants: Int? = null,
     val isOnline: Boolean? = null,
+    val photoUrls: List<String>? = null,
 )
 
