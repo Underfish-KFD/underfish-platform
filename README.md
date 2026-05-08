@@ -208,54 +208,7 @@ DEBUG=1 ./integration-tests/run_e2e.sh
 
 Eureka/Service Discovery в проекте не настроен — маршрутизация идет через явные `host:port`.
 
-### Вариант 1: Сборка из исходников
-
-1. Клонируйте репозиторий
-
-```
-git clone https://github.com/Underfish-KFD/underfish.git
-cd underfish
-```
-
 ---
-2. Соберите проект с помощью Maven (нужен установленный Maven)
-
-```
-mvn clean package
-```
-3. Запустите приложение
-```
-java -jar target/underfish-0.1.jar
-```
-4. Приложение будет доступно на `http://localhost:8080`.
----
-### Вариант 2: Запуск через Docker 🐳
-
-1. Клонируйте репозиторий
-
-```
-git clone https://github.com/Underfish-KFD/underfish.git
-cd underfish
-```
-
----
-2. Соберите проект с помощью Maven (нужен установленный Maven)
-
-```
-mvn clean package -Pdocker -DskipTests
-```
-3. Соберите Docker-образ:
-```
-docker build -t kotlin-app .
-```
-4. Запустите контейнер с зависимостями:
-```
-docker compose up -d
-```
-5. Приложение будет доступно на `http://localhost:8080`.
-
----
-
 
 ## Мониторинг и метрики 📊
 
