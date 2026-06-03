@@ -1,0 +1,38 @@
+%% BPMN-style business process: event search on map.
+%% Export to docs/diagrams/bpmn_search_event.png
+
+flowchart TD
+    classDef event fill:#ffffff,stroke:#111827,stroke-width:2px,color:#111827
+    classDef task fill:#ecfdf5,stroke:#047857,stroke-width:1px,color:#111827
+    classDef gateway fill:#fff7ed,stroke:#c2410c,stroke-width:1px,color:#111827
+    classDef error fill:#fef2f2,stroke:#b91c1c,stroke-width:1px,color:#111827
+
+    start((Start)):::event
+    finish((Event selected)):::event
+
+    subgraph user["Пользователь"]
+        openMap["Открывает карту мероприятий"]:::task
+        setFilters["Выбирает район, даты, теги, подписки"]:::task
+        inspectMarkers["Просматривает маркеры и список"]:::task
+        openEvent["Открывает карточку мероприятия"]:::task
+    end
+
+    subgraph frontend["Frontend"]
+        requestGeo["Запрашивает геопозицию / границы карты"]:::task
+        sendSearch["GET /api/v1/events с фильтрами"]:::task
+        renderMap["Отрисовывает маркеры и карточки"]:::task
+        showEmpty["Показывает пустой результат"]:::error
+    end
+
+    subgraph backend["Backend"]
+        routeGateway["Gateway маршрутизирует запрос"]:::task
+        geoFilter["Location Service уточняет координаты и радиус"]:::task
+        eventSearch["Event Service применяет фильтры по датам, тегам, месту"]:::task
+        enrich["Profile/Community данные для карточек"]:::task
+        found{"Найдены мероприятия?"}:::gateway
+    end
+
+    start --> openMap --> requestGeo --> setFilters --> sendSearch --> routeGateway
+    routeGateway --> geoFilter --> eventSearch --> enrich --> found
+    found -->|"Да"| renderMap --> inspectMarkers --> openEvent --> finish
+    found -->|"Нет"| showEmpty --> setFilters
