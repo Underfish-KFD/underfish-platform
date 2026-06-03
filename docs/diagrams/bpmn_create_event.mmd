@@ -1,0 +1,45 @@
+%% BPMN-style business process: event creation by community organizer.
+%% Export to docs/diagrams/bpmn_create_event.png
+
+flowchart TD
+    classDef event fill:#ffffff,stroke:#111827,stroke-width:2px,color:#111827
+    classDef task fill:#ecfdf5,stroke:#047857,stroke-width:1px,color:#111827
+    classDef gateway fill:#fff7ed,stroke:#c2410c,stroke-width:1px,color:#111827
+    classDef error fill:#fef2f2,stroke:#b91c1c,stroke-width:1px,color:#111827
+
+    start((Start)):::event
+    finish((Event published)):::event
+
+    subgraph organizer["Организатор"]
+        chooseCommunity["Выбирает сообщество"]:::task
+        fillCard["Заполняет название, описание, дату, теги, цену"]:::task
+        addPlace["Указывает место / онлайн-формат"]:::task
+        uploadImages["Добавляет изображения"]:::task
+        submit["Нажимает Опубликовать"]:::task
+    end
+
+    subgraph frontend["Frontend"]
+        validateClient["Проверяет обязательные поля"]:::task
+        sendEvent["POST /api/v1/events через Gateway"]:::task
+        showPublished["Показывает опубликованную карточку"]:::task
+        showError["Показывает ошибку валидации или прав"]:::error
+    end
+
+    subgraph backend["Backend"]
+        authCheck["Gateway проверяет JWT и передает X-User-Id"]:::task
+        rights{"Пользователь организатор сообщества?"}:::gateway
+        validateLocation["Location Service проверяет место"]:::task
+        saveFiles["File Storage Service сохраняет изображения"]:::task
+        saveEvent["Event Service сохраняет мероприятие"]:::task
+        publishKafka["Публикация события event.created в Kafka"]:::task
+        notify["Notification Service уведомляет подписчиков"]:::task
+        reject["Отказ: 400/403"]:::error
+    end
+
+    start --> chooseCommunity --> fillCard --> addPlace --> uploadImages --> submit
+    submit --> validateClient
+    validateClient -->|"OK"| sendEvent --> authCheck --> rights
+    validateClient -->|"Ошибка формы"| showError --> fillCard
+    rights -->|"Да"| validateLocation --> saveFiles --> saveEvent --> publishKafka --> notify --> showPublished --> finish
+    rights -->|"Нет"| reject --> showError
+    validateLocation -->|"Некорректное место"| reject

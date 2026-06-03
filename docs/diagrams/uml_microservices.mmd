@@ -1,0 +1,99 @@
+%% Underfish microservice component diagram for Mermaid.
+%% Export this file to docs/diagrams/uml_component_architecture.png
+%% Example: mmdc -i docs/diagrams/uml_microservices.mmd -o docs/diagrams/uml_component_architecture.png -b white
+%% The diagram intentionally hides per-service database details to keep the report figure readable.
+
+flowchart LR
+    classDef client fill:#eef7ff,stroke:#2b6cb0,stroke-width:1px,color:#111827
+    classDef gateway fill:#fff7ed,stroke:#c2410c,stroke-width:2px,color:#111827
+    classDef service fill:#ecfdf5,stroke:#047857,stroke-width:1px,color:#111827
+    classDef storage fill:#fef2f2,stroke:#b91c1c,stroke-width:1px,color:#111827
+    classDef infra fill:#f5f3ff,stroke:#6d28d9,stroke-width:1px,color:#111827
+    classDef external fill:#f8fafc,stroke:#475569,stroke-width:1px,color:#111827
+
+    frontend["Frontend\nWeb / mobile client"]:::client
+    gateway["API Gateway\nJWT validation, routing, internal headers"]:::gateway
+
+    subgraph backend["Backend microservices"]
+        auth["Auth Service\nregistration, login, JWT, JWKS"]:::service
+        profile["Profile Service\nusers, profiles, roles"]:::service
+        community["Community Service\ncommunities, members, organizers"]:::service
+        event["Event Service\nevents, tags, reviews, attendance"]:::service
+        location["Location Service\naddresses and coordinates"]:::service
+        files["File Storage Service\nimage upload and links"]:::service
+        notification["Notification Service\nemail and reminders"]:::service
+    end
+
+    subgraph platform["Shared platform dependencies"]
+        postgres[("PostgreSQL\nlogical database per service")]:::storage
+        objectStorage[("MinIO / S3\nimages and documents")]:::storage
+        cache[("Redis\nOTP, sessions, cache")]
+        kafka[("Kafka\ndomain events")]
+    end
+
+    subgraph externalSystems["External systems"]
+        maps["Yandex Maps API\ngeocoding / map data"]:::external
+        smtp["SMTP / email provider"]:::external
+        calendar["Calendar export\nICS / Yandex Calendar"]:::external
+    end
+
+    subgraph observability["Observability"]
+        monitoring["Prometheus + Grafana\nmetrics and dashboards"]:::infra
+        logging["Loki\ncentralized logs"]:::infra
+    end
+
+    frontend -->|"HTTPS REST /api/v1/**"| gateway
+
+    gateway -->|"/auth/**, /token/**"| auth
+    gateway -->|"/api/v1/users/**"| profile
+    gateway -->|"/api/v1/communities/**"| community
+    gateway -->|"/api/v1/events/**"| event
+    gateway -->|"/api/v1/locations/**"| location
+    gateway -->|"/api/v1/files/**"| files
+    gateway -->|"/api/v1/notifications/**"| notification
+    gateway -.->|"JWKS public keys"| auth
+
+    auth -->|"create profile after registration"| profile
+    auth -.->|"OTP / sessions / rate limits"| cache
+
+    profile -->|"avatar upload/read"| files
+    community -->|"community avatar/media"| files
+
+    event -->|"check community and organizer rights"| community
+    event -->|"read public user data"| profile
+    event -->|"validate location"| location
+    event -->|"event album images"| files
+    event -->|"ICS export"| calendar
+
+    location -->|"geocoding"| maps
+    files -->|"put/get/delete objects"| objectStorage
+    notification -->|"send email"| smtp
+
+    auth --> postgres
+    profile --> postgres
+    community --> postgres
+    event --> postgres
+    location --> postgres
+    files --> postgres
+
+    community -.->|"community events"| kafka
+    event -.->|"event created/updated/cancelled"| kafka
+    kafka -.->|"async notifications"| notification
+
+    gateway -.-> monitoring
+    auth -.-> monitoring
+    profile -.-> monitoring
+    community -.-> monitoring
+    event -.-> monitoring
+    location -.-> monitoring
+    files -.-> monitoring
+    notification -.-> monitoring
+
+    gateway -.-> logging
+    auth -.-> logging
+    profile -.-> logging
+    community -.-> logging
+    event -.-> logging
+    location -.-> logging
+    files -.-> logging
+    notification -.-> logging

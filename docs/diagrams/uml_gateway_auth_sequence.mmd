@@ -1,0 +1,30 @@
+%% Underfish authorization sequence for Mermaid.
+%% Export to docs/diagrams/uml_sequence_gateway_auth.png
+
+sequenceDiagram
+    autonumber
+    actor User as Пользователь
+    participant Client as Frontend
+    participant Gateway as API Gateway
+    participant Auth as Auth Service
+    participant Profile as Profile Service
+    participant Target as Domain Service<br/>(Event/Community/Profile)
+
+    User->>Client: Вводит email и пароль
+    Client->>Gateway: POST /api/v1/auth/login
+    Gateway->>Auth: Маршрутизация запроса входа
+    Auth->>Auth: Проверка email, hash(password), статуса
+    Auth-->>Client: access_token + refresh_token
+
+    Client->>Gateway: Запрос к защищенному API<br/>Authorization: Bearer JWT
+    Gateway->>Auth: GET /.well-known/jwks.json<br/>при отсутствии ключа в кеше
+    Auth-->>Gateway: JWKS public keys
+    Gateway->>Gateway: Проверка подписи, exp, roles
+    Gateway->>Target: REST + X-User-Id + X-User-Roles + X-Internal-Token
+    Target->>Target: Проверка роли и прав владения ресурсом
+    opt Нужны публичные данные пользователя
+        Target->>Profile: GET профиль пользователя<br/>через внутренний REST
+        Profile-->>Target: User/Profile DTO
+    end
+    Target-->>Gateway: Результат бизнес-операции
+    Gateway-->>Client: HTTP response
